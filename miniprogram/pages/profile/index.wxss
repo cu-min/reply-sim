@@ -1,0 +1,145 @@
+.profile-hero,
+.history-card,
+.favorite-card {
+  padding: var(--space-24);
+}
+
+.profile-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.profile-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f3e4df, #efe8de);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-title-md);
+  font-weight: 600;
+}
+
+.profile-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-size: var(--font-title-md);
+}
+
+.profile-signature {
+  margin-top: var(--space-8);
+  color: var(--color-text-secondary);
+}
+
+.heart-balance-row {
+  margin-top: var(--space-20);
+}
+
+.heart-balance-top {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-12);
+}
+
+.heart-number {
+  display: block;
+  font-size: var(--font-number);
+  line-height: 1.1;
+  font-weight: 600;
+}
+
+.heart-label {
+  display: block;
+  margin-top: 6rpx;
+  color: var(--color-text-secondary);
+  font-size: var(--font-caption);
+}
+
+.recharge-link {
+  color: var(--color-accent);
+  font-size: var(--font-caption);
+}
+
+.stats-card {
+  padding: var(--space-20);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-number {
+  display: block;
+  font-size: var(--font-number);
+  line-height: 1.1;
+  font-weight: 600;
+}
+
+.stat-label {
+  display: block;
+  margin-top: var(--space-8);
+  color: var(--color-text-secondary);
+  font-size: var(--font-note);
+}
+
+.history-card + .history-card,
+.favorite-card + .favorite-card {
+  margin-top: var(--space-12);
+}
+
+.history-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.history-title,
+.favorite-title {
+  font-size: var(--font-title-sm);
+  font-weight: 600;
+}
+
+.history-summary,
+.favorite-copy {
+  display: block;
+  margin-top: var(--space-12);
+  color: var(--color-text-secondary);
+}
+
+.history-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-16);
+}
+
+.history-badge {
+  display: inline-flex;
+  padding: 10rpx 18rpx;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: var(--font-caption);
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-12);
+  padding: 12rpx 0 24rpx;
+  color: var(--color-text-secondary);
+  font-size: var(--font-note);
+}

@@ -1,0 +1,46 @@
+<view class="page-shell detail-page" wx:if="{{loadState === 'ready' && script}}">
+  <view class="surface-card detail-character-card">
+    <text class="eyebrow">{{script.category}} · 预设剧本</text>
+    <text class="detail-title serif-title">{{script.character.name}}</text>
+    <view class="tag-row detail-tag-row">
+      <text class="mini-tag">{{script.character.relationship}}</text>
+      <text class="mini-tag">{{script.character.archetype}}</text>
+      <block wx:for="{{script.character.personalityTags}}" wx:key="*this">
+        <text class="mini-tag">{{item}}</text>
+      </block>
+    </view>
+    <text class="detail-copy">{{script.character.speakingStyle}}</text>
+  </view>
+
+  <view class="section-block">
+    <view class="section-head">
+      <text class="section-title">故事背景</text>
+    </view>
+    <view class="surface-card detail-card">
+      <text>{{script.background}}</text>
+    </view>
+  </view>
+
+  <view class="section-block">
+    <view class="section-head">
+      <text class="section-title">人物侧写</text>
+    </view>
+    <view class="surface-card detail-card">
+      <text class="detail-copy">当前态度：{{script.character.currentAttitude}}</text>
+      <text class="meta-line detail-meta">{{script.character.age}}岁 · {{script.character.occupation}}</text>
+      <text class="detail-copy">{{script.meta}}</text>
+    </view>
+  </view>
+
+  <view class="detail-actions">
+    <button class="primary-button" bindtap="handleStartChat">开始这段对话</button>
+  </view>
+</view>
+
+<view class="page-shell detail-page" wx:elif="{{loadState === 'error'}}">
+  <view class="surface-card detail-card">
+    <text class="section-title">暂时打不开这个剧本</text>
+    <text class="detail-copy">{{errorMessage}}</text>
+    <button class="ghost-button detail-fallback-button" bindtap="handleBackHome">回到首页</button>
+  </view>
+</view>

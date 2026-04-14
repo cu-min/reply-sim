@@ -1,0 +1,38 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/profile/index",
+    "pages/script-detail/index",
+    "pages/chat/index",
+    "pages/ending/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "如果这样回",
+    "navigationBarBackgroundColor": "#F5F0E8",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F5F0E8",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#9A8F85",
+    "selectedColor": "#8B5A5A",
+    "backgroundColor": "#F5F0E8",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页",
+        "iconPath": "assets/tabbar/home.png",
+        "selectedIconPath": "assets/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "assets/tabbar/profile.png",
+        "selectedIconPath": "assets/tabbar/profile-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

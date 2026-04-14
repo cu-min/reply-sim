@@ -1,0 +1,7 @@
+<view class="emotion-line" wx:if="{{emotionHint}}">{{emotionHint}}</view>
+<view class="chat-row {{role === 'user' ? 'chat-row--user' : 'chat-row--assistant'}}">
+  <view class="chat-avatar">{{avatarText}}</view>
+  <view class="chat-bubble {{role === 'user' ? 'chat-bubble--user' : 'chat-bubble--assistant'}}">
+    {{text}}
+  </view>
+</view>

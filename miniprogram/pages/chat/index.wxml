@@ -1,0 +1,102 @@
+<view class="page-shell chat-page" wx:if="{{loadState === 'ready' && script}}">
+  <view class="chat-topbar">
+    <view class="chat-title-group">
+      <text class="chat-name">{{script.character.name}}</text>
+      <text class="chat-status">{{topStatusText}}</text>
+    </view>
+  </view>
+
+  <text class="chat-turn">{{turnLabel}}</text>
+  <text class="chat-restore" wx:if="{{restoredSession}}">已恢复你上次未结束的这局对话</text>
+
+  <scroll-view scroll-y class="chat-panel" scroll-with-animation scroll-into-view="{{scrollIntoViewId}}">
+    <block wx:for="{{messages}}" wx:key="id">
+      <view id="msg-{{item.id}}">
+        <chat-message
+          role="{{item.role}}"
+          text="{{item.text}}"
+          emotionHint="{{item.emotionHint || ''}}"
+          avatarText="{{item.role === 'user' ? '我' : counterpartInitial}}"
+        />
+      </view>
+    </block>
+  </scroll-view>
+
+  <view class="surface-card chat-bottom" wx:if="{{!canFinish}}">
+    <view class="bottom-group" wx:if="{{!isStrategyChosen}}">
+      <text class="section-title">第一步 先决定怎么说</text>
+      <text class="intent-description">先选一个表达方向，再进入这一轮候选回复。</text>
+      <view class="pill-row">
+        <block wx:for="{{intentOptions}}" wx:key="id">
+          <view
+            class="intent-item"
+            data-id="{{item.id}}"
+            bindtap="handleIntentSelect"
+          >
+            <intent-chip label="{{item.label}}" active="{{selectedIntentId === item.id}}" />
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <view class="bottom-group" wx:if="{{isStrategyChosen}}">
+      <view class="reply-stage-head">
+        <view class="reply-stage-copy">
+          <text class="section-title">第二步 从这个方向里选一句</text>
+        </view>
+        <button class="stage-back-button" bindtap="handleBackToIntentSelect">返回</button>
+      </view>
+      <view class="selected-intent-badge">{{selectedIntentLabel}}</view>
+      <block wx:for="{{replyOptions}}" wx:key="id">
+        <view
+          class="reply-item"
+          data-id="{{item.id}}"
+          bindtap="handleReplySelect"
+        >
+          <reply-option
+            label="{{item.label}}"
+            tone="{{item.tone}}"
+            text="{{item.text}}"
+            active="{{selectedReplyId === item.id}}"
+          />
+        </view>
+      </block>
+    </view>
+
+    <view class="bottom-group">
+      <text class="section-title">第三步 发前再调一下</text>
+      <text class="composer-note">{{draftSourceLabel}}</text>
+      <textarea
+        class="composer"
+        maxlength="-1"
+        auto-height="true"
+        placeholder="也可以自己改一句再发出去"
+        value="{{composerText}}"
+        bindinput="handleComposerInput"
+        disabled="{{isTyping}}"
+      />
+      <view class="composer-actions">
+        <button class="ghost-button composer-clear" bindtap="handleClearComposer">清空</button>
+        <button class="primary-button send-button {{sendButtonDisabled ? 'send-button--disabled' : ''}}" bindtap="handleSend">
+          发送这句
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <view class="surface-card finish-panel" wx:if="{{canFinish}}">
+    <text class="section-title">这一局可以先停在这里</text>
+    <text class="finish-copy">{{endingPrompt}}</text>
+    <button class="primary-button finish-button" bindtap="handleSeeEnding">查看本局结局</button>
+    <button class="ghost-button" bindtap="handleRestart">换个方式再聊一遍</button>
+  </view>
+</view>
+
+<view class="page-shell chat-page" wx:elif="{{loadState === 'error'}}">
+  <view class="surface-card finish-panel">
+    <text class="section-title">这段对话暂时没接上</text>
+    <text class="finish-copy">{{errorMessage}}</text>
+    <button class="primary-button finish-button" bindtap="handleRestart" wx:if="{{script}}">重新开始这一局</button>
+    <button class="ghost-button" bindtap="handleBackHome">回到首页</button>
+  </view>
+</view>

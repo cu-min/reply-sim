@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "chat-message": "/components/chat-message/index",
+    "intent-chip": "/components/intent-chip/index",
+    "reply-option": "/components/reply-option/index"
+  }
+}

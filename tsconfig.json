@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "ESNext",
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "lib": ["ES2019"]
+  },
+  "include": [
+    "typings/**/*.d.ts",
+    "miniprogram/**/*.ts"
+  ]
+}

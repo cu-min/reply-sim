@@ -1,0 +1,92 @@
+<view class="page-shell profile-page" wx:if="{{profile}}">
+  <view class="surface-card profile-hero">
+    <view class="profile-top">
+      <view class="profile-avatar">回</view>
+      <view class="profile-copy">
+        <text class="profile-name serif-title">{{profile.nickname}}</text>
+        <text class="profile-signature">{{profile.signature}}</text>
+      </view>
+    </view>
+    <view class="heart-balance-row">
+      <view class="heart-balance">
+        <view class="heart-balance-top">
+          <text class="heart-number">{{profile.heartBalance}}</text>
+          <text class="recharge-link">充值 →</text>
+        </view>
+        <text class="heart-label">心动值余额</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-block">
+    <view class="surface-card stats-card">
+      <view class="stat-item">
+        <text class="stat-number">{{profile.stats.experiencedCount}}</text>
+        <text class="stat-label">已体验剧本</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{profile.stats.unlockedEndingCount}}</text>
+        <text class="stat-label">解锁结局</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{profile.stats.totalTurns}}</text>
+        <text class="stat-label">累计对话轮数</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-block">
+    <view class="section-head">
+      <text class="section-title">历史记录</text>
+      <text class="section-note">本地 mock + 当前设备会话</text>
+    </view>
+    <block wx:if="{{profile.history.length}}">
+      <block wx:for="{{profile.history}}" wx:key="id">
+        <view class="surface-card history-card">
+          <view class="history-top">
+            <text class="history-title">{{item.scriptTitle}}</text>
+            <text class="fine-print">{{item.playedAt}}</text>
+          </view>
+          <text class="history-summary">{{item.endingSummary}}</text>
+          <view class="history-bottom">
+            <text class="history-badge">{{item.badgeLabel}}</text>
+            <text class="fine-print">→</text>
+          </view>
+        </view>
+      </block>
+    </block>
+    <view class="empty-panel" wx:else>还没有历史记录，先去首页跑一局。</view>
+  </view>
+
+  <view class="section-block">
+    <view class="section-head">
+      <text class="section-title">我的收藏剧本</text>
+    </view>
+    <block wx:if="{{favoriteScripts.length}}">
+      <block wx:for="{{favoriteScripts}}" wx:key="id">
+        <view class="surface-card favorite-card">
+          <view class="history-top">
+            <text class="favorite-title">{{item.title}}</text>
+            <text class="fine-print">→</text>
+          </view>
+          <text class="meta-line">{{item.meta}}</text>
+          <text class="favorite-copy">{{item.blurb}}</text>
+        </view>
+      </block>
+    </block>
+    <view class="empty-panel" wx:else>收藏功能已预留，后续可以接真实写入。</view>
+  </view>
+
+  <view class="section-block">
+    <view class="section-head">
+      <text class="section-title">次要入口</text>
+    </view>
+    <view class="footer-links">
+      <text>设置</text>
+      <text>·</text>
+      <text>反馈</text>
+      <text>·</text>
+      <text>关于</text>
+    </view>
+  </view>
+</view>

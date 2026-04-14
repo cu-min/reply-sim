@@ -1,0 +1,37 @@
+.reply-card {
+  padding: var(--space-16);
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  border: 1rpx solid var(--color-border-soft);
+  box-shadow: var(--shadow-card);
+}
+
+.reply-card--active {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+
+.reply-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.reply-label {
+  font-size: var(--font-caption);
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.reply-text {
+  display: block;
+  margin-top: var(--space-12);
+  color: var(--color-text-primary);
+  font-size: var(--font-body);
+}
+
+.fine-print {
+  font-size: var(--font-note);
+  color: var(--color-text-muted);
+}

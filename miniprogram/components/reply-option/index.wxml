@@ -1,0 +1,7 @@
+<view class="reply-card {{active ? 'reply-card--active' : ''}}">
+  <view class="reply-card-top">
+    <text class="reply-label">{{label}}</text>
+    <text class="fine-print">{{tone}}</text>
+  </view>
+  <text class="reply-text">{{text}}</text>
+</view>

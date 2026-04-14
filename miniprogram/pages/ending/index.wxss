@@ -1,0 +1,81 @@
+.ending-page {
+  background: var(--color-bg-page-deep);
+}
+
+.ending-hero {
+  padding: 32rpx 16rpx 12rpx;
+  text-align: center;
+}
+
+.ending-title {
+  display: block;
+  margin-top: var(--space-12);
+  font-size: 60rpx;
+  line-height: 1.12;
+}
+
+.ending-impact {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 34rpx;
+  line-height: 1.55;
+  color: var(--color-text-primary);
+}
+
+.ending-summary {
+  display: block;
+  margin-top: 16rpx;
+  color: var(--color-text-secondary);
+  font-size: var(--font-body);
+  line-height: 1.7;
+}
+
+.ending-flow {
+  margin-top: 28rpx;
+  padding: 0 12rpx;
+}
+
+.ending-paragraph {
+  display: block;
+  color: var(--color-text-primary);
+  font-size: 32rpx;
+  line-height: 1.85;
+}
+
+.ending-paragraph + .ending-paragraph {
+  margin-top: 24rpx;
+}
+
+.ending-actions {
+  margin-top: 40rpx;
+}
+
+.ending-action-secondary {
+  margin-top: var(--space-12);
+}
+
+.ending-closing {
+  padding: 56rpx 24rpx 8rpx;
+  text-align: center;
+}
+
+.ending-closing-text {
+  font-size: 30rpx;
+  line-height: 1.9;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.ending-action-link {
+  margin-top: 16rpx;
+  min-height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-caption);
+}
+
+.ending-error {
+  padding: var(--space-24);
+}

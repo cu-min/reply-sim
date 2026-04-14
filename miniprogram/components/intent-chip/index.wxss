@@ -1,0 +1,18 @@
+.pill {
+  min-height: 60rpx;
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-pill);
+  border: 1rpx solid var(--color-border-soft);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-caption);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pill--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #ffffff;
+}

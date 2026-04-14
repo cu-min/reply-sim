@@ -1,0 +1,46 @@
+page {
+  --color-bg-page: #f5f0e8;
+  --color-bg-page-deep: #eee5da;
+  --color-bg-card: #ffffff;
+  --color-bg-muted: #f7f2eb;
+  --color-bg-soft: #fbf7f1;
+  --color-text-primary: #2c2c2c;
+  --color-text-secondary: #6f645d;
+  --color-text-muted: #9a8f85;
+  --color-border-soft: #ede8e0;
+  --color-border-strong: #d9cfc4;
+  --color-accent: #8b5a5a;
+  --color-accent-alt: #6b7b6e;
+  --color-accent-soft: #f3e8e8;
+  --color-bubble-assistant: #f0ebe3;
+  --color-bubble-user: #95ec69;
+  --color-bubble-user-border: #7ad34c;
+  --color-bubble-assistant-border: #e7dfd4;
+  --color-highlight: #8b5a5a;
+
+  --font-title-xl: 56rpx;
+  --font-title-lg: 52rpx;
+  --font-title-md: 40rpx;
+  --font-title-sm: 30rpx;
+  --font-body: 30rpx;
+  --font-caption: 24rpx;
+  --font-note: 22rpx;
+  --font-number: 48rpx;
+
+  --space-8: 8rpx;
+  --space-12: 12rpx;
+  --space-16: 16rpx;
+  --space-20: 20rpx;
+  --space-24: 24rpx;
+  --space-32: 32rpx;
+  --space-40: 40rpx;
+
+  --radius-card: 32rpx;
+  --radius-bubble: 36rpx;
+  --radius-button: 24rpx;
+  --radius-input: 20rpx;
+  --radius-pill: 999rpx;
+
+  --shadow-card: 0 4rpx 24rpx rgba(0, 0, 0, 0.06);
+  --layout-page-padding: 32rpx;
+}

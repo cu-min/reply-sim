@@ -1,0 +1,33 @@
+<view class="page-shell ending-page" wx:if="{{loadState === 'ready' && script && ending}}">
+  <view class="ending-hero">
+    <text class="eyebrow">{{script.title}} · 本局结局</text>
+    <text class="ending-title serif-title">{{ending.title}}</text>
+    <text class="ending-impact">{{ending.impactLine}}</text>
+    <text class="ending-summary">{{ending.relationSummary}}</text>
+  </view>
+
+  <view class="ending-flow">
+    <block wx:for="{{ending.summaryParagraphs}}" wx:key="*this">
+      <text class="ending-paragraph">{{item}}</text>
+    </block>
+  </view>
+
+  <view class="ending-closing">
+    <text class="ending-closing-text serif-title">{{ending.closingLine}}</text>
+  </view>
+
+  <view class="ending-actions">
+    <button class="primary-button" bindtap="handleShare">一键分享</button>
+    <button class="secondary-button ending-action-secondary" bindtap="handleReplay">再来一局</button>
+    <button class="ending-action-link" bindtap="handleReplay">换个方式</button>
+  </view>
+</view>
+
+<view class="page-shell ending-page" wx:elif="{{loadState === 'error'}}">
+  <view class="surface-card ending-error">
+    <text class="section-title">这一页暂时打不开</text>
+    <text class="ending-summary">{{errorMessage}}</text>
+    <button class="primary-button ending-action-secondary" bindtap="handleReplay" wx:if="{{script}}">回到这段剧本</button>
+    <button class="ghost-button ending-action-secondary" bindtap="handleBackHome">回到首页</button>
+  </view>
+</view>

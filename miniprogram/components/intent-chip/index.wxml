@@ -1,0 +1,3 @@
+<view class="pill {{active ? 'pill--active' : ''}}">
+  {{label}}
+</view>
