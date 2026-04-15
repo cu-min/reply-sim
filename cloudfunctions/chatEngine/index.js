@@ -201,6 +201,9 @@ ${formatHistory(normalizeMessages(session))}
   const raw = await callDeepSeek(systemPrompt, userPrompt);
   const result = parseJSON(raw);
   const strategies = Array.isArray(result.strategies) ? result.strategies.slice(0, 3) : [];
+  if (!strategies.length) {
+    throw new Error("AI 未返回策略");
+  }
 
   return {
     strategies: strategies.map(normalizeStrategy)
@@ -249,6 +252,9 @@ ${formatHistory(normalizeMessages(session))}
   const raw = await callDeepSeek(systemPrompt, userPrompt);
   const result = parseJSON(raw);
   const replies = Array.isArray(result.replies) ? result.replies.slice(0, 3) : [];
+  if (!replies.length) {
+    throw new Error("AI 未返回候选回复");
+  }
 
   return {
     replies: replies.map((reply, index) => normalizeReply(reply, index, strategy.id || "strategy"))
@@ -330,6 +336,9 @@ ${JSON.stringify(possibleEndings)}
   const raw = await callDeepSeek(systemPrompt, userPrompt);
   const result = parseJSON(raw);
   result.reply_messages = Array.isArray(result.reply_messages) ? result.reply_messages.slice(0, 3) : [];
+  if (!result.reply_messages.length) {
+    throw new Error("AI 未返回回应消息");
+  }
   result.mood_update = result.mood_update || session.current_mood || "";
   result.favorability_change = typeof result.favorability_change === "number" ? result.favorability_change : 0;
   result.new_favorability = clampFavorability(result.new_favorability, session.current_favorability);
@@ -344,6 +353,9 @@ ${JSON.stringify(possibleEndings)}
 async function loadSessionWithScenario(sessionId) {
   const sessionDoc = await db.collection("sessions").doc(sessionId).get();
   const session = sessionDoc.data;
+  if (!session) {
+    throw new Error("会话不存在");
+  }
   const scenarioRes = await db.collection("scenarios").where({ id: session.scenario_id }).limit(1).get();
 
   if (!scenarioRes.data || scenarioRes.data.length === 0) {

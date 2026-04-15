@@ -41,6 +41,7 @@
 
 ## 问题记录
 - 当前小程序运行根目录是 `miniprogram/`，根目录 `data/scenarios/` 不能直接作为运行时数据源，需要由 mock 层做适配
+- `cloudfunctions/chatEngine/index.js` 当前仍写入了真实 DeepSeek API Key，属于高风险临时联调配置；在基础设计完成、准备进入更稳定版本前，必须改为安全配置方案（不要继续硬编码在仓库里）
 
 ## 待定记录
 - 阶段二接入真实模型时，是否保留当前本地 mock 作为离线兜底

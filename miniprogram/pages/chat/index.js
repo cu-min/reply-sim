@@ -101,6 +101,7 @@ Page({
     endingPrompt: "",
     counterpartInitial: "他",
     selectedIntentLabel: "",
+    selectedIntentDescription: "",
     isStrategyChosen: false,
     turnLabel: "",
     scrollIntoViewId: "",
@@ -165,6 +166,7 @@ Page({
       endingPrompt: "",
       counterpartInitial: script.character.name.slice(0, 1),
       selectedIntentLabel: "",
+      selectedIntentDescription: "",
       isStrategyChosen: false,
       turnLabel: getTurnLabel(initialMessages, false),
       scrollIntoViewId: getLastMessageId(initialMessages),
@@ -198,6 +200,7 @@ Page({
       selectedIntentId: "",
       selectedReplyId: "",
       selectedIntentLabel: "",
+      selectedIntentDescription: "",
       isStrategyChosen: false,
       composerText: "",
       sendButtonDisabled: true,
@@ -207,6 +210,9 @@ Page({
     try {
       const result = await generateStrategies(this.data.sessionId);
       const strategies = (result && result.strategies) || [];
+      if (!strategies.length) {
+        throw new Error("未生成策略");
+      }
       this.setData({
         intentOptions: strategies,
         draftSourceLabel: "先选一个表达方向，再决定这一轮怎么说"
@@ -228,6 +234,7 @@ Page({
       isStrategyChosen: true,
       selectedIntentId: strategy.id,
       selectedIntentLabel: strategy.label,
+      selectedIntentDescription: strategy.description || "",
       replyOptions: getReplyLoadingOptions(),
       selectedReplyId: "",
       composerText: "",
@@ -238,6 +245,9 @@ Page({
     try {
       const result = await generateReplies(this.data.sessionId, strategy);
       const replies = (result && result.replies) || [];
+      if (!replies.length) {
+        throw new Error("未生成候选回复");
+      }
       this.setData({
         replyOptions: replies,
         draftSourceLabel: "选中一句后，可以继续微调再发送"
@@ -283,7 +293,7 @@ Page({
       this.fetchReplies({
         id: this.data.selectedIntentId,
         label: this.data.selectedIntentLabel,
-        description: ""
+        description: this.data.selectedIntentDescription
       });
       return;
     }
@@ -351,6 +361,9 @@ Page({
 
     try {
       const result = await generateResponse(this.data.sessionId, userMessage);
+      if (!result || !Array.isArray(result.reply_messages)) {
+        throw new Error("AI 回应格式异常");
+      }
       const delay = randomDelay();
       const aiMessages = (result.reply_messages || []).map((text, index) =>
         createAssistantMessage(
@@ -371,6 +384,7 @@ Page({
           selectedIntentId: "",
           selectedReplyId: "",
           selectedIntentLabel: "",
+          selectedIntentDescription: "",
           isStrategyChosen: false,
           composerText: "",
           canFinish: shouldEnd,
