@@ -1,14 +1,25 @@
 const { generateStrategies, generateReplies, generateResponse } = require("../../services/chat-ai-service");
-const { createSession, syncSession } = require("../../services/session-service");
+const { createSession, syncOpeningSession } = (() => {
+  const service = require("../../services/session-service");
+  return {
+    createSession: service.createSession,
+    syncOpeningSession: service.syncSession
+  };
+})();
 const { getScriptDetail } = require("../../services/script-service");
+const { consumeHeart } = require("../../services/heart-service");
 
 const STRATEGY_LOADING_ID = "system-strategy-loading";
 const STRATEGY_RETRY_ID = "system-strategy-retry";
 const REPLY_LOADING_ID = "system-reply-loading";
 const REPLY_RETRY_ID = "system-reply-retry";
 
-function randomDelay() {
-  return 500 + Math.floor(Math.random() * 1000);
+function randomMessageDelay() {
+  return 800 + Math.floor(Math.random() * 1200);
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function createAssistantMessage(text, emotionHint, name) {
@@ -49,7 +60,7 @@ function getStrategyLoadingOptions() {
     {
       id: STRATEGY_LOADING_ID,
       label: "正在思考",
-      description: "正在思考表达方向..."
+      description: "正在想更合适的表达方向..."
     }
   ];
 }
@@ -59,7 +70,7 @@ function getStrategyRetryOptions() {
     {
       id: STRATEGY_RETRY_ID,
       label: "再试一次",
-      description: "对方在想怎么回你..."
+      description: "对方在想怎么回你，请稍后重试"
     }
   ];
 }
@@ -80,8 +91,8 @@ function getReplyRetryOptions() {
     {
       id: REPLY_RETRY_ID,
       label: "重新生成",
-      tone: "轻点一下再试一次",
-      text: "点这里重新生成这组候选回复。"
+      tone: "轻点一下再试一轮",
+      text: "点这里重新生成这一组候选回复。"
     }
   ];
 }
@@ -99,22 +110,27 @@ Page({
     composerText: "",
     canFinish: false,
     endingPrompt: "",
-    counterpartInitial: "他",
+    counterpartInitial: "对",
     selectedIntentLabel: "",
     selectedIntentDescription: "",
     isStrategyChosen: false,
     turnLabel: "",
     scrollIntoViewId: "",
     sendButtonDisabled: true,
-    draftSourceLabel: "你也可以直接自己写一句",
+    draftSourceLabel: "你也可以自己改一句再发出去",
     restoredSession: false,
     isTyping: false,
     topStatusText: "",
     loadState: "loading",
-    errorMessage: ""
+    errorMessage: "",
+    strategiesLoading: false
   },
 
   async onLoad(query) {
+    this.destroyed = false;
+    this.pendingEnding = null;
+    this.hasConsumedHeart = false;
+
     const requestedScriptId = query.scriptId;
     const incomingSessionId = query.cloudSessionId || query.sessionId || "";
     const script = await getScriptDetail(requestedScriptId);
@@ -151,7 +167,6 @@ Page({
       createAssistantMessage(script.openingLine, "", script.character.name)
     ];
 
-    this.pendingEnding = null;
     this.setData({
       script,
       sessionId,
@@ -171,21 +186,50 @@ Page({
       turnLabel: getTurnLabel(initialMessages, false),
       scrollIntoViewId: getLastMessageId(initialMessages),
       sendButtonDisabled: true,
-      draftSourceLabel: "你也可以直接自己写一句",
+      draftSourceLabel: "先选一个表达方向，再决定这一轮怎么说",
       restoredSession: false,
       isTyping: false,
       topStatusText: script.character.currentAttitude,
       loadState: "ready",
-      errorMessage: ""
+      errorMessage: "",
+      strategiesLoading: true
     });
 
+    this.scrollToBottom(initialMessages);
     await this.syncOpeningMessage(initialMessages);
-    await this.fetchStrategies();
+    await this.preloadStrategies();
+  },
+
+  async callWithRetry(fn, retryCount = 1) {
+    for (let index = 0; index <= retryCount; index += 1) {
+      try {
+        return await fn();
+      } catch (error) {
+        if (index >= retryCount) {
+          throw error;
+        }
+      }
+    }
+
+    return null;
+  },
+
+  scrollToBottom(messages) {
+    const targetId = getLastMessageId(messages || this.data.messages);
+    setTimeout(() => {
+      if (this.destroyed) {
+        return;
+      }
+
+      this.setData({
+        scrollIntoViewId: targetId
+      });
+    }, 60);
   },
 
   async syncOpeningMessage(messages) {
     try {
-      await syncSession(this.data.sessionId, {
+      await syncOpeningSession(this.data.sessionId, {
         messages,
         currentMood: this.data.script.character.initialMood || this.data.script.character.currentAttitude || "",
         currentFavorability: Number(this.data.script.character.initialFavorability || 0)
@@ -193,8 +237,9 @@ Page({
     } catch (error) {}
   },
 
-  async fetchStrategies() {
+  async preloadStrategies() {
     this.setData({
+      strategiesLoading: true,
       intentOptions: getStrategyLoadingOptions(),
       replyOptions: [],
       selectedIntentId: "",
@@ -208,22 +253,25 @@ Page({
     });
 
     try {
-      const result = await generateStrategies(this.data.sessionId);
+      const result = await this.callWithRetry(() => generateStrategies(this.data.sessionId), 1);
       const strategies = (result && result.strategies) || [];
       if (!strategies.length) {
         throw new Error("未生成策略");
       }
+
       this.setData({
         intentOptions: strategies,
-        draftSourceLabel: "先选一个表达方向，再决定这一轮怎么说"
+        draftSourceLabel: "先选一个表达方向，再决定这一轮怎么说",
+        strategiesLoading: false
       });
     } catch (error) {
       this.setData({
         intentOptions: getStrategyRetryOptions(),
-        draftSourceLabel: "对方在想怎么回你..."
+        draftSourceLabel: "对方在想怎么回你...",
+        strategiesLoading: false
       });
       wx.showToast({
-        title: "对方在想怎么回你...",
+        title: "对方在想怎么回你...请稍后重试",
         icon: "none"
       });
     }
@@ -243,11 +291,12 @@ Page({
     });
 
     try {
-      const result = await generateReplies(this.data.sessionId, strategy);
+      const result = await this.callWithRetry(() => generateReplies(this.data.sessionId, strategy), 1);
       const replies = (result && result.replies) || [];
       if (!replies.length) {
         throw new Error("未生成候选回复");
       }
+
       this.setData({
         replyOptions: replies,
         draftSourceLabel: "选中一句后，可以继续微调再发送"
@@ -258,7 +307,7 @@ Page({
         draftSourceLabel: "对方在想怎么回你..."
       });
       wx.showToast({
-        title: "对方在想怎么回你...",
+        title: "对方在想怎么回你...请稍后重试",
         icon: "none"
       });
     }
@@ -271,7 +320,7 @@ Page({
     }
 
     if (intentId === STRATEGY_RETRY_ID) {
-      this.fetchStrategies();
+      this.preloadStrategies();
       return;
     }
 
@@ -307,7 +356,7 @@ Page({
       selectedReplyId: reply.id,
       composerText: reply.text,
       sendButtonDisabled: !String(reply.text || "").trim(),
-      draftSourceLabel: "已选中这一句，可继续微调后发送"
+      draftSourceLabel: "已选中这一句，可以继续微调后发送"
     });
   },
 
@@ -316,7 +365,7 @@ Page({
       return;
     }
 
-    this.fetchStrategies();
+    this.preloadStrategies();
   },
 
   handleComposerInput(event) {
@@ -325,6 +374,32 @@ Page({
       composerText: value,
       sendButtonDisabled: !String(value).trim()
     });
+  },
+
+  async appendAssistantMessages(replyMessages, emotionHint) {
+    const incomingMessages = Array.isArray(replyMessages) ? replyMessages : [];
+
+    for (let index = 0; index < incomingMessages.length; index += 1) {
+      if (this.destroyed) {
+        return;
+      }
+
+      await wait(randomMessageDelay());
+
+      const nextMessages = this.data.messages.concat([
+        createAssistantMessage(
+          incomingMessages[index],
+          index === 0 ? emotionHint || "" : "",
+          this.data.script.character.name
+        )
+      ]);
+
+      this.setData({
+        messages: nextMessages,
+        scrollIntoViewId: getLastMessageId(nextMessages)
+      });
+      this.scrollToBottom(nextMessages);
+    }
   },
 
   async handleSend() {
@@ -354,56 +429,53 @@ Page({
       messages: nextMessages,
       scrollIntoViewId: getLastMessageId(nextMessages),
       isTyping: true,
-      topStatusText: this.data.script.character.name + "正在输入...",
+      topStatusText: this.data.script.character.name + " 正在输入...",
       draftSourceLabel: "对方在想怎么回你...",
       sendButtonDisabled: true
     });
+    this.scrollToBottom(nextMessages);
 
     try {
-      const result = await generateResponse(this.data.sessionId, userMessage);
-      if (!result || !Array.isArray(result.reply_messages)) {
+      const result = await this.callWithRetry(() => generateResponse(this.data.sessionId, userMessage), 1);
+      if (!result || !Array.isArray(result.reply_messages) || !result.reply_messages.length) {
         throw new Error("AI 回应格式异常");
       }
-      const delay = randomDelay();
-      const aiMessages = (result.reply_messages || []).map((text, index) =>
-        createAssistantMessage(
-          text,
-          index === 0 ? result.emotion_hint || "" : "",
-          this.data.script.character.name
-        )
-      );
 
-      this._responseTimer = setTimeout(() => {
-        const mergedMessages = nextMessages.concat(aiMessages);
-        const shouldEnd = Boolean(result.should_end && result.ending);
+      await this.appendAssistantMessages(result.reply_messages, result.emotion_hint);
 
-        this.setData({
-          messages: mergedMessages,
-          intentOptions: shouldEnd ? [] : getStrategyLoadingOptions(),
-          replyOptions: [],
-          selectedIntentId: "",
-          selectedReplyId: "",
-          selectedIntentLabel: "",
-          selectedIntentDescription: "",
-          isStrategyChosen: false,
-          composerText: "",
-          canFinish: shouldEnd,
-          endingPrompt: shouldEnd ? "这段对话到了一个节点，要在这里画上句号吗？" : "",
-          turnLabel: getTurnLabel(mergedMessages, shouldEnd),
-          scrollIntoViewId: getLastMessageId(mergedMessages),
-          sendButtonDisabled: true,
-          draftSourceLabel: shouldEnd ? "这一局可以先停在这里" : "你也可以直接自己写一句",
-          isTyping: false,
-          topStatusText: result.mood_update || this.data.script.character.currentAttitude
-        });
+      const mergedMessages = this.data.messages;
+      const shouldEnd = Boolean(result.should_end && result.ending);
 
-        if (shouldEnd) {
-          this.pendingEnding = result.ending;
-          return;
-        }
+      if (shouldEnd) {
+        await this.tryConsumeHeartOnce();
+      }
 
-        this.fetchStrategies();
-      }, delay);
+      this.setData({
+        intentOptions: shouldEnd ? [] : getStrategyLoadingOptions(),
+        replyOptions: [],
+        selectedIntentId: "",
+        selectedReplyId: "",
+        selectedIntentLabel: "",
+        selectedIntentDescription: "",
+        isStrategyChosen: false,
+        composerText: "",
+        canFinish: shouldEnd,
+        endingPrompt: shouldEnd ? "这段对话到了一个节点，要在这里停住吗？" : "",
+        turnLabel: getTurnLabel(mergedMessages, shouldEnd),
+        scrollIntoViewId: getLastMessageId(mergedMessages),
+        sendButtonDisabled: true,
+        draftSourceLabel: shouldEnd ? "这一局可以先停在这里" : "你也可以自己改一句再发出去",
+        isTyping: false,
+        topStatusText: result.mood_update || this.data.script.character.currentAttitude
+      });
+      this.scrollToBottom(mergedMessages);
+
+      if (shouldEnd) {
+        this.pendingEnding = result.ending;
+        return;
+      }
+
+      await this.preloadStrategies();
     } catch (error) {
       this.setData({
         messages: nextMessages,
@@ -412,9 +484,22 @@ Page({
         draftSourceLabel: "对方在想怎么回你..."
       });
       wx.showToast({
-        title: "对方在想怎么回你...",
+        title: "对方在想怎么回你...请稍后重试",
         icon: "none"
       });
+    }
+  },
+
+  async tryConsumeHeartOnce() {
+    if (this.hasConsumedHeart) {
+      return;
+    }
+
+    try {
+      await consumeHeart();
+      this.hasConsumedHeart = true;
+    } catch (error) {
+      console.error("[chat] 消耗心动值失败:", error);
     }
   },
 
@@ -480,8 +565,6 @@ Page({
   },
 
   onUnload() {
-    if (this._responseTimer) {
-      clearTimeout(this._responseTimer);
-    }
+    this.destroyed = true;
   }
 });
