@@ -1,92 +1,89 @@
-const {
-  clearDraft,
-  createMockSession,
-  finishSession,
-  getCurrentTurn,
-  getRecoverableSessionId,
-  resetIntentSelection,
-  saveEnding,
-  selectIntent,
-  selectReply,
-  submitReply,
-  syncSession,
-  updateComposer
-} = require("../../services/session-service");
-const { getEndingResult, getScriptDetail } = require("../../services/script-service");
+const { generateStrategies, generateReplies, generateResponse } = require("../../services/chat-ai-service");
+const { createSession, syncSession } = require("../../services/session-service");
+const { getScriptDetail } = require("../../services/script-service");
 
-function deriveCurrentMood(state, script) {
-  const lastAssistantMessage = state.messages.slice().reverse().find((item) => item.role === "assistant");
-  return (lastAssistantMessage && lastAssistantMessage.emotionHint) || (script && script.character.currentAttitude) || "";
+const STRATEGY_LOADING_ID = "system-strategy-loading";
+const STRATEGY_RETRY_ID = "system-strategy-retry";
+const REPLY_LOADING_ID = "system-reply-loading";
+const REPLY_RETRY_ID = "system-reply-retry";
+
+function randomDelay() {
+  return 500 + Math.floor(Math.random() * 1000);
 }
 
-function deriveCurrentFavorability(state, script) {
-  const base = Number(script && script.character && script.character.initialFavorability) || 0;
-  const userMessageCount = state.messages.filter((item) => item.role === "user").length;
-  return base + userMessageCount;
+function createAssistantMessage(text, emotionHint, name) {
+  return {
+    id: "assistant-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    role: "assistant",
+    text: text || "",
+    emotionHint: emotionHint || "",
+    name: name || "",
+    timestamp: Date.now()
+  };
 }
 
-function syncPageState(page, state, script) {
-  const currentTurn = state.currentTurn;
-  const lastMessage = state.messages[state.messages.length - 1];
-  const replySelected = Boolean(state.selectedReplyId);
-  const hasComposerText = Boolean((state.composerText || "").trim());
-  const isStrategyChosen = Boolean(state.selectedIntentId);
-  const userMessageCount = state.messages.filter((item) => item.role === "user").length;
-  const totalTurns = currentTurn ? userMessageCount + 1 : userMessageCount;
-
-  page.setData({
-    script,
-    sessionId: state.session.sessionId,
-    messages: state.messages,
-    intentOptions: currentTurn ? currentTurn.intentOptions : [],
-    replyOptions: state.replyOptions || [],
-    selectedIntentId: state.selectedIntentId,
-    selectedReplyId: state.selectedReplyId,
-    composerText: state.composerText,
-    canFinish: state.canFinish,
-    endingPrompt: state.endingPrompt,
-    counterpartInitial: script.character.name.slice(0, 1),
-    selectedIntentLabel: currentTurn && isStrategyChosen
-      ? ((currentTurn.intentOptions.find((item) => item.id === state.selectedIntentId) || {}).label || "")
-      : "",
-    isStrategyChosen,
-    turnLabel: state.canFinish ? "本局已到收尾节点" : "第 " + totalTurns + " 轮表达",
-    scrollIntoViewId: lastMessage ? "msg-" + lastMessage.id : "",
-    sendButtonDisabled: !hasComposerText,
-    draftSourceLabel: replySelected ? "已选中这一句，可继续微调后发送" : "你也可以直接先在这里写",
-    topStatusText: state.canFinish ? "这一局快到落幕的位置了" : script.character.currentAttitude,
-    loadState: "ready",
-    errorMessage: ""
-  });
+function createUserMessage(text) {
+  return {
+    id: "user-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    role: "user",
+    text: text || "",
+    timestamp: Date.now()
+  };
 }
 
-function syncTypingState(page, state, script) {
-  const messages = state.messages.slice(0, -1);
-  const lastMessage = messages[messages.length - 1];
+function getLastMessageId(messages) {
+  const lastMessage = (messages || [])[messages.length - 1];
+  return lastMessage ? "msg-" + lastMessage.id : "";
+}
 
-  page.setData({
-    script,
-    sessionId: state.session.sessionId,
-    messages,
-    intentOptions: [],
-    replyOptions: [],
-    selectedIntentId: "",
-    selectedReplyId: "",
-    composerText: "",
-    canFinish: false,
-    endingPrompt: "",
-    counterpartInitial: script.character.name.slice(0, 1),
-    selectedIntentLabel: "",
-    isStrategyChosen: false,
-    turnLabel: "对方正在斟酌怎么回你",
-    scrollIntoViewId: lastMessage ? "msg-" + lastMessage.id : "",
-    sendButtonDisabled: true,
-    draftSourceLabel: "等对方说完，再决定这一轮怎么接",
-    topStatusText: script.character.name + "正在输入...",
-    isTyping: true,
-    loadState: "ready",
-    errorMessage: ""
-  });
+function getTurnLabel(messages, canFinish) {
+  const userMessageCount = (messages || []).filter((item) => item.role === "user").length;
+  if (canFinish) {
+    return "本局已到收尾节点";
+  }
+  return "第 " + (userMessageCount + 1) + " 轮表达";
+}
+
+function getStrategyLoadingOptions() {
+  return [
+    {
+      id: STRATEGY_LOADING_ID,
+      label: "正在思考",
+      description: "正在思考表达方向..."
+    }
+  ];
+}
+
+function getStrategyRetryOptions() {
+  return [
+    {
+      id: STRATEGY_RETRY_ID,
+      label: "再试一次",
+      description: "对方在想怎么回你..."
+    }
+  ];
+}
+
+function getReplyLoadingOptions() {
+  return [
+    {
+      id: REPLY_LOADING_ID,
+      label: "正在组织语言",
+      tone: "再等一小会",
+      text: "正在组织语言..."
+    }
+  ];
+}
+
+function getReplyRetryOptions() {
+  return [
+    {
+      id: REPLY_RETRY_ID,
+      label: "重新生成",
+      tone: "轻点一下再试一次",
+      text: "点这里重新生成这组候选回复。"
+    }
+  ];
 }
 
 Page({
@@ -118,16 +115,8 @@ Page({
 
   async onLoad(query) {
     const requestedScriptId = query.scriptId;
-    const localSessionId = query.sessionId;
-    const cloudSessionId = query.cloudSessionId || "";
-    let state = localSessionId ? getCurrentTurn(localSessionId) : null;
-    let scriptId = requestedScriptId || (state ? state.session.scriptId : "");
-    let script = await getScriptDetail(scriptId);
-
-    if (!script && state) {
-      scriptId = state.session.scriptId;
-      script = await getScriptDetail(scriptId);
-    }
+    const incomingSessionId = query.cloudSessionId || query.sessionId || "";
+    const script = await getScriptDetail(requestedScriptId);
 
     if (!script) {
       wx.showToast({
@@ -141,88 +130,175 @@ Page({
       return;
     }
 
-    if (state && state.session.scriptId !== scriptId) {
-      state = null;
+    let sessionId = incomingSessionId;
+    if (!sessionId) {
+      try {
+        sessionId = await createSession(script.id);
+      } catch (error) {}
     }
 
-    const recoveredSessionId = !localSessionId ? getRecoverableSessionId(scriptId) : null;
-    if (!state && recoveredSessionId) {
-      state = getCurrentTurn(recoveredSessionId);
-    }
-
-    if (!state) {
-      const session = createMockSession(scriptId);
-      state = session ? getCurrentTurn(session.sessionId) : null;
-    }
-
-    if (!state) {
-      wx.showToast({
-        title: "会话创建失败",
-        icon: "none"
-      });
+    if (!sessionId) {
       this.setData({
         script,
         loadState: "error",
-        errorMessage: "这段对话暂时还没准备好，请返回上一页重新进入。"
+        errorMessage: "这段对话暂时接不上云端会话，请回到上一页重新进入。"
       });
       return;
     }
 
-    if (!state.currentTurn && !state.canFinish) {
-      this.setData({
-        script,
-        loadState: "error",
-        errorMessage: "会话状态丢失了，建议重新开始这一局。"
-      });
-      return;
-    }
+    const initialMessages = [
+      createAssistantMessage(script.openingLine, "", script.character.name)
+    ];
 
-    syncPageState(this, state, script);
+    this.pendingEnding = null;
     this.setData({
-      cloudSessionId,
-      restoredSession: Boolean(recoveredSessionId || localSessionId),
-      isTyping: false
+      script,
+      sessionId,
+      cloudSessionId: sessionId,
+      messages: initialMessages,
+      intentOptions: getStrategyLoadingOptions(),
+      replyOptions: [],
+      selectedIntentId: "",
+      selectedReplyId: "",
+      composerText: "",
+      canFinish: false,
+      endingPrompt: "",
+      counterpartInitial: script.character.name.slice(0, 1),
+      selectedIntentLabel: "",
+      isStrategyChosen: false,
+      turnLabel: getTurnLabel(initialMessages, false),
+      scrollIntoViewId: getLastMessageId(initialMessages),
+      sendButtonDisabled: true,
+      draftSourceLabel: "你也可以直接自己写一句",
+      restoredSession: false,
+      isTyping: false,
+      topStatusText: script.character.currentAttitude,
+      loadState: "ready",
+      errorMessage: ""
     });
 
-    this.persistCloudSession(state);
+    await this.syncOpeningMessage(initialMessages);
+    await this.fetchStrategies();
   },
 
-  async persistCloudSession(state) {
-    if (!this.data.cloudSessionId || !state || !this.data.script) {
-      return;
-    }
-
+  async syncOpeningMessage(messages) {
     try {
-      await syncSession(this.data.cloudSessionId, {
-        messages: state.messages,
-        currentMood: deriveCurrentMood(state, this.data.script),
-        currentFavorability: deriveCurrentFavorability(state, this.data.script)
+      await syncSession(this.data.sessionId, {
+        messages,
+        currentMood: this.data.script.character.initialMood || this.data.script.character.currentAttitude || "",
+        currentFavorability: Number(this.data.script.character.initialFavorability || 0)
       });
     } catch (error) {}
   },
 
+  async fetchStrategies() {
+    this.setData({
+      intentOptions: getStrategyLoadingOptions(),
+      replyOptions: [],
+      selectedIntentId: "",
+      selectedReplyId: "",
+      selectedIntentLabel: "",
+      isStrategyChosen: false,
+      composerText: "",
+      sendButtonDisabled: true,
+      draftSourceLabel: "对方在想怎么回你..."
+    });
+
+    try {
+      const result = await generateStrategies(this.data.sessionId);
+      const strategies = (result && result.strategies) || [];
+      this.setData({
+        intentOptions: strategies,
+        draftSourceLabel: "先选一个表达方向，再决定这一轮怎么说"
+      });
+    } catch (error) {
+      this.setData({
+        intentOptions: getStrategyRetryOptions(),
+        draftSourceLabel: "对方在想怎么回你..."
+      });
+      wx.showToast({
+        title: "对方在想怎么回你...",
+        icon: "none"
+      });
+    }
+  },
+
+  async fetchReplies(strategy) {
+    this.setData({
+      isStrategyChosen: true,
+      selectedIntentId: strategy.id,
+      selectedIntentLabel: strategy.label,
+      replyOptions: getReplyLoadingOptions(),
+      selectedReplyId: "",
+      composerText: "",
+      sendButtonDisabled: true,
+      draftSourceLabel: "正在组织语言..."
+    });
+
+    try {
+      const result = await generateReplies(this.data.sessionId, strategy);
+      const replies = (result && result.replies) || [];
+      this.setData({
+        replyOptions: replies,
+        draftSourceLabel: "选中一句后，可以继续微调再发送"
+      });
+    } catch (error) {
+      this.setData({
+        replyOptions: getReplyRetryOptions(),
+        draftSourceLabel: "对方在想怎么回你..."
+      });
+      wx.showToast({
+        title: "对方在想怎么回你...",
+        icon: "none"
+      });
+    }
+  },
+
   handleIntentSelect(event) {
     const intentId = event.currentTarget.dataset.id;
-    if (!intentId) {
+    if (!intentId || intentId === STRATEGY_LOADING_ID) {
       return;
     }
 
-    const state = selectIntent(this.data.sessionId, intentId);
-    if (state) {
-      syncPageState(this, state, this.data.script);
+    if (intentId === STRATEGY_RETRY_ID) {
+      this.fetchStrategies();
+      return;
     }
+
+    const strategy = (this.data.intentOptions || []).find((item) => item.id === intentId);
+    if (!strategy) {
+      return;
+    }
+
+    this.fetchReplies(strategy);
   },
 
   handleReplySelect(event) {
     const replyId = event.currentTarget.dataset.id;
-    if (!replyId) {
+    if (!replyId || replyId === REPLY_LOADING_ID) {
       return;
     }
 
-    const state = selectReply(this.data.sessionId, replyId);
-    if (state) {
-      syncPageState(this, state, this.data.script);
+    if (replyId === REPLY_RETRY_ID) {
+      this.fetchReplies({
+        id: this.data.selectedIntentId,
+        label: this.data.selectedIntentLabel,
+        description: ""
+      });
+      return;
     }
+
+    const reply = (this.data.replyOptions || []).find((item) => item.id === replyId);
+    if (!reply) {
+      return;
+    }
+
+    this.setData({
+      selectedReplyId: reply.id,
+      composerText: reply.text,
+      sendButtonDisabled: !String(reply.text || "").trim(),
+      draftSourceLabel: "已选中这一句，可继续微调后发送"
+    });
   },
 
   handleBackToIntentSelect() {
@@ -230,18 +306,15 @@ Page({
       return;
     }
 
-    const state = resetIntentSelection(this.data.sessionId);
-    if (state) {
-      syncPageState(this, state, this.data.script);
-    }
+    this.fetchStrategies();
   },
 
   handleComposerInput(event) {
     const value = event.detail.value || "";
-    const state = updateComposer(this.data.sessionId, value);
-    if (state) {
-      syncPageState(this, state, this.data.script);
-    }
+    this.setData({
+      composerText: value,
+      sendButtonDisabled: !String(value).trim()
+    });
   },
 
   async handleSend() {
@@ -257,8 +330,8 @@ Page({
       return;
     }
 
-    const text = (this.data.composerText || "").trim();
-    if (!text) {
+    const userMessage = String(this.data.composerText || "").trim();
+    if (!userMessage) {
       wx.showToast({
         title: "先选一句或自己写一句",
         icon: "none"
@@ -266,102 +339,112 @@ Page({
       return;
     }
 
-    const state = submitReply(this.data.sessionId, {
-      replyId: this.data.selectedReplyId,
-      customText: this.data.composerText
+    const nextMessages = this.data.messages.concat([createUserMessage(userMessage)]);
+    this.setData({
+      messages: nextMessages,
+      scrollIntoViewId: getLastMessageId(nextMessages),
+      isTyping: true,
+      topStatusText: this.data.script.character.name + "正在输入...",
+      draftSourceLabel: "对方在想怎么回你...",
+      sendButtonDisabled: true
     });
 
-    if (!state) {
+    try {
+      const result = await generateResponse(this.data.sessionId, userMessage);
+      const delay = randomDelay();
+      const aiMessages = (result.reply_messages || []).map((text, index) =>
+        createAssistantMessage(
+          text,
+          index === 0 ? result.emotion_hint || "" : "",
+          this.data.script.character.name
+        )
+      );
+
+      this._responseTimer = setTimeout(() => {
+        const mergedMessages = nextMessages.concat(aiMessages);
+        const shouldEnd = Boolean(result.should_end && result.ending);
+
+        this.setData({
+          messages: mergedMessages,
+          intentOptions: shouldEnd ? [] : getStrategyLoadingOptions(),
+          replyOptions: [],
+          selectedIntentId: "",
+          selectedReplyId: "",
+          selectedIntentLabel: "",
+          isStrategyChosen: false,
+          composerText: "",
+          canFinish: shouldEnd,
+          endingPrompt: shouldEnd ? "这段对话到了一个节点，要在这里画上句号吗？" : "",
+          turnLabel: getTurnLabel(mergedMessages, shouldEnd),
+          scrollIntoViewId: getLastMessageId(mergedMessages),
+          sendButtonDisabled: true,
+          draftSourceLabel: shouldEnd ? "这一局可以先停在这里" : "你也可以直接自己写一句",
+          isTyping: false,
+          topStatusText: result.mood_update || this.data.script.character.currentAttitude
+        });
+
+        if (shouldEnd) {
+          this.pendingEnding = result.ending;
+          return;
+        }
+
+        this.fetchStrategies();
+      }, delay);
+    } catch (error) {
+      this.setData({
+        messages: nextMessages,
+        isTyping: false,
+        topStatusText: this.data.script.character.currentAttitude,
+        draftSourceLabel: "对方在想怎么回你..."
+      });
       wx.showToast({
-        title: "发送失败",
+        title: "对方在想怎么回你...",
         icon: "none"
       });
-      this.setData({
-        loadState: "error",
-        errorMessage: "这一轮没有成功推进，请重新进入剧本再试一次。"
-      });
-      return;
     }
-
-    this.persistCloudSession(state);
-
-    const lastMessage = state.messages[state.messages.length - 1];
-    const shouldSimulateTyping =
-      !state.canFinish &&
-      lastMessage &&
-      lastMessage.role === "assistant" &&
-      state.messages.length >= 2;
-
-    if (shouldSimulateTyping) {
-      if (this._typingTimer) {
-        clearTimeout(this._typingTimer);
-      }
-
-      syncTypingState(this, state, this.data.script);
-      this._typingTimer = setTimeout(() => {
-        syncPageState(this, state, this.data.script);
-        this.setData({
-          isTyping: false
-        });
-      }, 900);
-      return;
-    }
-
-    syncPageState(this, state, this.data.script);
-    this.setData({
-      isTyping: false
-    });
   },
 
-  async handleSeeEnding() {
-    const result = finishSession(this.data.sessionId);
-    if (!result) {
+  handleSeeEnding() {
+    if (!this.pendingEnding) {
       wx.showToast({
-        title: "还没到结局节点",
+        title: "这段对话还没落到结局",
         icon: "none"
       });
       return;
     }
 
-    if (this.data.cloudSessionId) {
-      try {
-        const ending = await getEndingResult(result.scriptId, result.endingId);
-        if (ending) {
-          await saveEnding({
-            sessionId: this.data.cloudSessionId,
-            scenarioId: result.scriptId,
-            endingType: ending.id,
-            endingText: {
-              relationship_result: ending.relationSummary,
-              key_behavior_feedback: ending.keyFeedback,
-              missed_branch_hint: ending.missedBranchHint,
-              literary_closing: ending.closingLine
-            }
-          });
-        }
-      } catch (error) {}
-    }
+    const app = getApp();
+    app.globalData = app.globalData || {};
+    app.globalData.lastEnding = {
+      scenarioId: this.data.script.id,
+      sessionId: this.data.sessionId,
+      ending: this.pendingEnding,
+      characterName: this.data.script.character.name,
+      scriptTitle: this.data.script.title
+    };
 
     wx.navigateTo({
-      url:
-        "/pages/ending/index?scriptId=" +
-        result.scriptId +
-        "&endingId=" +
-        result.endingId +
-        "&sessionId=" +
-        this.data.sessionId
+      url: "/pages/ending/index"
     });
   },
 
-  handleRestart() {
+  async handleRestart() {
     const script = this.data.script;
     if (!script) {
       return;
     }
 
-    wx.redirectTo({
-      url: "/pages/chat/index?scriptId=" + script.id
-    });
+    try {
+      const newSessionId = await createSession(script.id);
+      wx.redirectTo({
+        url: "/pages/chat/index?scriptId=" + script.id + "&cloudSessionId=" + newSessionId
+      });
+    } catch (error) {
+      wx.showToast({
+        title: "暂时还开不了新一局",
+        icon: "none"
+      });
+    }
   },
 
   handleBackHome() {
@@ -375,15 +458,16 @@ Page({
       return;
     }
 
-    const state = clearDraft(this.data.sessionId);
-    if (state) {
-      syncPageState(this, state, this.data.script);
-    }
+    this.setData({
+      selectedReplyId: "",
+      composerText: "",
+      sendButtonDisabled: true
+    });
   },
 
   onUnload() {
-    if (this._typingTimer) {
-      clearTimeout(this._typingTimer);
+    if (this._responseTimer) {
+      clearTimeout(this._responseTimer);
     }
   }
 });

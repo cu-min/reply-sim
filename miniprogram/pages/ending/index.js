@@ -17,6 +17,19 @@ function buildSummaryParagraphs(ending) {
   return paragraphs;
 }
 
+function buildEndingFromGlobal(ending) {
+  return {
+    id: ending.type || "unknown",
+    title: ending.relationship_result || "这一局有了一个结果",
+    impactLine: ending.key_behavior_feedback || "",
+    relationSummary: ending.relationship_result || "",
+    keyFeedback: ending.key_behavior_feedback || "",
+    missedBranchHint: ending.missed_branch_hint || "",
+    closingLine: ending.literary_closing || "",
+    badgeLabel: ending.type || "进行中"
+  };
+}
+
 Page({
   data: {
     script: null,
@@ -26,6 +39,27 @@ Page({
   },
 
   async onLoad(query) {
+    const app = getApp();
+    const lastEnding = app.globalData && app.globalData.lastEnding;
+
+    if (lastEnding && lastEnding.ending) {
+      const script = await getScriptDetail(lastEnding.scenarioId);
+      const ending = buildEndingFromGlobal(lastEnding.ending);
+
+      this.setData({
+        script: script || {
+          id: lastEnding.scenarioId,
+          title: lastEnding.scriptTitle || "这段对话"
+        },
+        ending: Object.assign({}, ending, {
+          summaryParagraphs: buildSummaryParagraphs(ending)
+        }),
+        loadState: "ready",
+        errorMessage: ""
+      });
+      return;
+    }
+
     const script = await getScriptDetail(query.scriptId);
     const ending = await getEndingResult(query.scriptId, query.endingId);
 

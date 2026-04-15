@@ -128,7 +128,7 @@ function normalizeMessages(session) {
 }
 
 function compressMessages(messages) {
-  if (messages.length <= 9) {
+  if (messages.length <= 12) {
     return messages;
   }
 

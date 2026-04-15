@@ -3,14 +3,15 @@ const { login } = require("./services/user-service");
 App({
   globalData: {
     brandName: "如果这样回",
-    userInfo: null
+    userInfo: null,
+    lastEnding: null
   },
 
   async onLaunch() {
     try {
       if (wx.cloud && wx.cloud.init) {
         wx.cloud.init({
-          env: "your-env-id",
+          env: "ran-1g26gduhce2045d3",
           traceUser: true
         });
       }
