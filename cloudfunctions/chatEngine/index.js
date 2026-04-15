@@ -5,7 +5,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
 const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
-const DEEPSEEK_API_KEY = "YOUR_DEEPSEEK_API_KEY";
+const DEEPSEEK_API_KEY = "sk-f1f632344b48447d977ca98812c43174";
 
 function parseJSON(text) {
   const cleaned = String(text || "")

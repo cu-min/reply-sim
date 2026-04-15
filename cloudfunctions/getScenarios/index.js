@@ -15,7 +15,8 @@ exports.main = async (event = {}) => {
         id: true,
         title: true,
         category: true,
-        cover: true
+        cover: true,
+        character: true
       })
       .get();
 

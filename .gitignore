@@ -5,6 +5,8 @@ desktop.ini
 .idea/
 .vscode/
 node_modules/
+cloudfunctions/**/node_modules/
+cloudfunctions/**/package-lock.json
 miniprogram_npm/
 dist/
 build/
