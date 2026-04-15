@@ -1,4 +1,5 @@
 const { getEndingResult, getScriptDetail } = require("../../services/script-service");
+const { rewardShareHearts } = require("../../services/heart-service");
 
 function buildSummaryParagraphs(ending) {
   if (!ending) {
@@ -106,8 +107,47 @@ Page({
 
   handleShare() {
     wx.showToast({
-      title: "分享能力稍后接入",
+      title: "分享到好友试试看",
       icon: "none"
     });
+  },
+
+  onShareAppMessage() {
+    const ending = this.data.ending || {};
+    return {
+      title: ending.closingLine || "有些话说出口会后悔，有些话没说出口更后悔",
+      path: "/pages/home/index"
+    };
+  },
+
+  onShareTimeline() {
+    const ending = this.data.ending || {};
+    return {
+      title: ending.closingLine || "如果这样回——你会怎么选？",
+      query: ""
+    };
+  },
+
+  async handleShareReward() {
+    try {
+      const result = await rewardShareHearts("share_friend");
+      if (result && result.rewarded) {
+        wx.showToast({
+          title: "+" + result.rewardAmount + " 心动值",
+          icon: "none",
+          duration: 2000
+        });
+        return;
+      }
+
+      if (result && result.message) {
+        wx.showToast({
+          title: result.message,
+          icon: "none"
+        });
+      }
+    } catch (error) {
+      console.error("[ending] 分享奖励失败:", error);
+    }
   }
 });

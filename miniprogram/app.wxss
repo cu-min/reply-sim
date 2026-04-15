@@ -29,6 +29,12 @@ button::after {
   border: none;
 }
 
+.surface-card:active {
+  opacity: 0.85;
+  transform: scale(0.98);
+  transition: all 0.1s ease;
+}
+
 .page-shell {
   min-height: 100vh;
   padding: var(--space-24) var(--layout-page-padding) calc(var(--space-32) + env(safe-area-inset-bottom));
@@ -95,6 +101,12 @@ button::after {
   color: #ffffff;
 }
 
+.pill:active {
+  opacity: 0.7;
+  transform: scale(0.95);
+  transition: all 0.1s ease;
+}
+
 .primary-button,
 .secondary-button,
 .ghost-button {
@@ -124,6 +136,12 @@ button::after {
   background: transparent;
 }
 
+button:active {
+  opacity: 0.8;
+  transform: scale(0.97);
+  transition: all 0.1s ease;
+}
+
 .empty-panel {
   padding: var(--space-20);
   border-radius: var(--radius-card);
@@ -146,6 +164,36 @@ button::after {
   font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
   font-weight: 700;
   letter-spacing: -0.5rpx;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 16rpx 32rpx;
+  background: var(--color-bg-soft, #f0ebe3);
+  border: 1rpx solid var(--color-border, #e5dfd5);
+  border-radius: var(--radius-pill, 999rpx);
+  font-size: var(--font-body, 28rpx);
+  color: var(--color-text-secondary, #8b8178);
+  line-height: 1.4;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.share-btn::after {
+  border: none;
+}
+
+.share-btn:active {
+  opacity: 0.7;
+  transform: scale(0.97);
+}
+
+.share-icon {
+  width: 32rpx;
+  height: 32rpx;
 }
 
 .divider {

@@ -48,10 +48,13 @@
 
 .ending-actions {
   margin-top: 40rpx;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
 }
 
 .ending-action-secondary {
-  margin-top: var(--space-12);
+  margin-top: 0;
 }
 
 .ending-closing {
@@ -67,7 +70,6 @@
 }
 
 .ending-action-link {
-  margin-top: 16rpx;
   min-height: 56rpx;
   display: flex;
   align-items: center;
@@ -78,4 +80,8 @@
 
 .ending-error {
   padding: var(--space-24);
+}
+
+.ending-share {
+  align-self: center;
 }
