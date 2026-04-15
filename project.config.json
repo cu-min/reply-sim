@@ -1,6 +1,7 @@
 {
   "appid": "wxca68357eae8b0d5f",
   "compileType": "miniprogram",
+  "cloudfunctionRoot": "cloudfunctions/",
   "miniprogramRoot": "miniprogram/",
   "simulatorType": "wechat",
   "simulatorPluginLibVersion": {},
