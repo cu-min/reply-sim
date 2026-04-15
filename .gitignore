@@ -5,8 +5,14 @@ desktop.ini
 .idea/
 .vscode/
 node_modules/
+miniprogram_npm/
+dist/
+build/
+coverage/
+*.log
 
 project.private.config.json
 
 miniprogram/**/*.ts
-
+typings/
+tsconfig.json
