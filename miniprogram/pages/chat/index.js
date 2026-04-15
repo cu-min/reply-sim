@@ -47,14 +47,6 @@ function getLastMessageId(messages) {
   return lastMessage ? "msg-" + lastMessage.id : "";
 }
 
-function getTurnLabel(messages, canFinish) {
-  const userMessageCount = (messages || []).filter((item) => item.role === "user").length;
-  if (canFinish) {
-    return "本局已到收尾节点";
-  }
-  return "第 " + (userMessageCount + 1) + " 轮表达";
-}
-
 function getStrategyLoadingOptions() {
   return [
     {
@@ -114,10 +106,9 @@ Page({
     selectedIntentLabel: "",
     selectedIntentDescription: "",
     isStrategyChosen: false,
-    turnLabel: "",
     scrollIntoViewId: "",
     sendButtonDisabled: true,
-    draftSourceLabel: "你也可以自己改一句再发出去",
+    draftSourceLabel: "可以直接发送，也可以参考上面的方向",
     restoredSession: false,
     isTyping: false,
     topStatusText: "",
@@ -133,7 +124,13 @@ Page({
 
     const requestedScriptId = query.scriptId;
     const incomingSessionId = query.cloudSessionId || query.sessionId || "";
-    const script = await getScriptDetail(requestedScriptId);
+    let script = null;
+
+    try {
+      script = await getScriptDetail(requestedScriptId);
+    } catch (error) {
+      script = null;
+    }
 
     if (!script) {
       wx.showToast({
@@ -179,14 +176,13 @@ Page({
       composerText: "",
       canFinish: false,
       endingPrompt: "",
-      counterpartInitial: script.character.name.slice(0, 1),
+      counterpartInitial: (script.character.name || "对").slice(0, 1),
       selectedIntentLabel: "",
       selectedIntentDescription: "",
       isStrategyChosen: false,
-      turnLabel: getTurnLabel(initialMessages, false),
       scrollIntoViewId: getLastMessageId(initialMessages),
       sendButtonDisabled: true,
-      draftSourceLabel: "先选一个表达方向，再决定这一轮怎么说",
+      draftSourceLabel: "可以直接发送，也可以参考上面的方向",
       restoredSession: false,
       isTyping: false,
       topStatusText: script.character.currentAttitude,
@@ -249,7 +245,7 @@ Page({
       isStrategyChosen: false,
       composerText: "",
       sendButtonDisabled: true,
-      draftSourceLabel: "对方在想怎么回你..."
+      draftSourceLabel: "可以直接发送，也可以参考上面的方向"
     });
 
     try {
@@ -261,7 +257,7 @@ Page({
 
       this.setData({
         intentOptions: strategies,
-        draftSourceLabel: "先选一个表达方向，再决定这一轮怎么说",
+        draftSourceLabel: "可以直接发送，也可以参考上面的方向",
         strategiesLoading: false
       });
     } catch (error) {
@@ -299,7 +295,7 @@ Page({
 
       this.setData({
         replyOptions: replies,
-        draftSourceLabel: "选中一句后，可以继续微调再发送"
+        draftSourceLabel: "选中一句后，可以继续微调后发送"
       });
     } catch (error) {
       this.setData({
@@ -407,14 +403,6 @@ Page({
       return;
     }
 
-    if (!this.data.selectedIntentId) {
-      wx.showToast({
-        title: "先选一个策略",
-        icon: "none"
-      });
-      return;
-    }
-
     const userMessage = String(this.data.composerText || "").trim();
     if (!userMessage) {
       wx.showToast({
@@ -461,10 +449,9 @@ Page({
         composerText: "",
         canFinish: shouldEnd,
         endingPrompt: shouldEnd ? "这段对话到了一个节点，要在这里停住吗？" : "",
-        turnLabel: getTurnLabel(mergedMessages, shouldEnd),
         scrollIntoViewId: getLastMessageId(mergedMessages),
         sendButtonDisabled: true,
-        draftSourceLabel: shouldEnd ? "这一局可以先停在这里" : "你也可以自己改一句再发出去",
+        draftSourceLabel: shouldEnd ? "这一局可以先停在这里" : "可以直接发送，也可以参考上面的方向",
         isTyping: false,
         topStatusText: result.mood_update || this.data.script.character.currentAttitude
       });

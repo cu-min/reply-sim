@@ -48,14 +48,6 @@
   writing-mode: horizontal-tb;
 }
 
-.chat-turn {
-  display: block;
-  margin: 0 0 var(--space-8);
-  color: var(--color-highlight);
-  font-size: var(--font-caption);
-  text-align: center;
-}
-
 .chat-restore {
   display: block;
   margin-bottom: var(--space-12);

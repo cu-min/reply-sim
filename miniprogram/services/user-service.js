@@ -10,46 +10,44 @@ function buildLocalHistory() {
 
 function buildLocalProfile() {
   const history = buildLocalHistory();
-  const experiencedCount = Array.from(new Set(history.map((item) => item.scriptId))).length;
-  const unlockedEndingCount = Array.from(
+  const scenarioCount = Array.from(new Set(history.map((item) => item.scriptId))).length;
+  const endingCount = Array.from(
     new Set(history.map((item) => item.scriptId + ":" + item.endingId))
   ).length;
-  const totalTurns = history.reduce((sum, item) => sum + (item.turnCount || 0), 0);
+  const totalRounds = history.reduce((sum, item) => sum + (item.turnCount || 0), 0);
   const user = getStorageSync(USER_CACHE_KEY, {});
 
   return {
-    id: user.openid || "local-user",
     nickname: user.nickname || "匿名旅人",
-    signature: "有些话，先在这里试着说。",
-    heartBalance: typeof user.hearts === "number" ? user.hearts : 5,
-    favoriteScriptIds: [],
-    history,
-    stats: {
-      experiencedCount,
-      unlockedEndingCount,
-      totalTurns
-    }
+    avatar: user.avatar || "",
+    hearts: typeof user.hearts === "number" ? user.hearts : 5,
+    scenarioCount,
+    endingCount,
+    totalRounds,
+    recentSessions: history.map((item) => ({
+      _id: item.id || "",
+      scenario_id: item.scriptId || "",
+      title: item.scriptTitle || item.scriptId || "未命名剧本",
+      status: "ended",
+      endingId: item.endingId || "",
+      endingLabel: item.endingTitle || item.badgeLabel || "已完成",
+      updated_at: item.playedAt || "",
+      created_at: item.playedAt || ""
+    }))
   };
 }
 
 function mapProfile(cloudProfile) {
-  const user = (cloudProfile && cloudProfile.user) || {};
+  const profile = cloudProfile || {};
 
   return {
-    id: user.openid || "cloud-user",
-    nickname: user.nickname || "匿名旅人",
-    signature: "有些话，先在这里试着说。",
-    heartBalance: typeof user.hearts === "number" ? user.hearts : 5,
-    favoriteScriptIds: [],
-    history: (cloudProfile && cloudProfile.history) || [],
-    stats: Object.assign(
-      {
-        experiencedCount: 0,
-        unlockedEndingCount: 0,
-        totalTurns: 0
-      },
-      cloudProfile && cloudProfile.stats
-    )
+    nickname: profile.nickname || "匿名旅人",
+    avatar: profile.avatar || "",
+    hearts: typeof profile.hearts === "number" ? profile.hearts : 5,
+    scenarioCount: Number(profile.scenarioCount || 0),
+    endingCount: Number(profile.endingCount || 0),
+    totalRounds: Number(profile.totalRounds || 0),
+    recentSessions: Array.isArray(profile.recentSessions) ? profile.recentSessions : []
   };
 }
 

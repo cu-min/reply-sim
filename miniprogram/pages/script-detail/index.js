@@ -11,6 +11,15 @@ Page({
 
   async onLoad(query) {
     const scriptId = query.scriptId;
+    if (!scriptId) {
+      this.setData({
+        script: null,
+        loadState: "error",
+        errorMessage: "没有拿到有效的剧本参数，请回到上一页重新进入。"
+      });
+      return;
+    }
+
     wx.showLoading({
       title: "加载中"
     });
@@ -34,6 +43,16 @@ Page({
         script,
         loadState: "ready",
         errorMessage: ""
+      });
+    } catch (error) {
+      wx.showToast({
+        title: "剧本加载失败",
+        icon: "none"
+      });
+      this.setData({
+        script: null,
+        loadState: "error",
+        errorMessage: "剧本详情暂时加载失败，请稍后重试。"
       });
     } finally {
       wx.hideLoading();

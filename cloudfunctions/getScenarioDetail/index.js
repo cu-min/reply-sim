@@ -6,11 +6,11 @@ const db = cloud.database();
 
 exports.main = async (event = {}) => {
   try {
-    const scenarioId = event.scenario_id;
+    const scenarioId = event.scenario_id || event.scriptId;
 
     if (!scenarioId) {
       return {
-        code: 1,
+        code: -1,
         message: "缺少 scenario_id"
       };
     }
@@ -19,7 +19,7 @@ exports.main = async (event = {}) => {
 
     if (!data.length) {
       return {
-        code: 1,
+        code: -1,
         message: "剧本不存在"
       };
     }
@@ -30,7 +30,7 @@ exports.main = async (event = {}) => {
     };
   } catch (error) {
     return {
-      code: 1,
+      code: -1,
       message: error.message || "获取剧本详情失败"
     };
   }

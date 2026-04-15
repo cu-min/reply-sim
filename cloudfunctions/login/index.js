@@ -12,7 +12,12 @@ exports.main = async () => {
     const { data } = await db.collection("users").where({ openid }).get();
 
     if (data.length > 0) {
-      return { code: 0, data: data[0], isNew: false };
+      return {
+        code: 0,
+        data: Object.assign({}, data[0], {
+          isNew: false
+        })
+      };
     }
 
     const newUser = {
@@ -23,12 +28,18 @@ exports.main = async () => {
       created_at: db.serverDate()
     };
 
-    await db.collection("users").add({ data: newUser });
+    const result = await db.collection("users").add({ data: newUser });
 
-    return { code: 0, data: newUser, isNew: true };
+    return {
+      code: 0,
+      data: Object.assign({}, newUser, {
+        _id: result._id,
+        isNew: true
+      })
+    };
   } catch (error) {
     return {
-      code: 1,
+      code: -1,
       message: error.message || "登录失败"
     };
   }

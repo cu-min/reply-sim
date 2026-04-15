@@ -1,25 +1,6 @@
-.home-topbar {
-  display: flex;
-  align-items: flex-end;
-  margin-bottom: var(--space-16);
-}
-
-.home-brand {
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-}
-
 .hero-card {
   padding: var(--space-24);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.74));
-}
-
-.hero-title {
-  display: block;
-  margin-top: 4rpx;
-  font-size: var(--font-title-xl);
-  line-height: 1.2;
 }
 
 .hero-copy {

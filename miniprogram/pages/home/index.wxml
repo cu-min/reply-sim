@@ -1,11 +1,4 @@
 <view class="page-shell home-page">
-  <view class="home-topbar">
-    <view class="home-brand">
-      <text class="eyebrow">情感模拟娱乐</text>
-      <text class="hero-title serif-title">如果这样回</text>
-    </view>
-  </view>
-
   <view class="surface-card hero-card">
     <text class="hero-copy">像深夜翻开一本旧日记。先选一段想聊的关系，看看今晚会走到哪里。</text>
   </view>
@@ -40,9 +33,7 @@
   </view>
 
   <view class="section-block">
-    <view class="section-head">
-      <text class="section-title">选一个场景</text>
-    </view>
+    <view class="section-head"></view>
     <scroll-view scroll-x class="category-scroll">
       <view class="pill-row category-row">
         <block wx:for="{{categories}}" wx:key="*this">

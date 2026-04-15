@@ -5,6 +5,14 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+function normalizeShareSource(source) {
+  if (source === "timeline" || source === "share_timeline") {
+    return "timeline";
+  }
+
+  return "friend";
+}
+
 exports.main = async (event = {}) => {
   const { action } = event;
   const openid = cloud.getWXContext().OPENID;
@@ -39,11 +47,22 @@ exports.main = async (event = {}) => {
           };
         }
 
-        await db.collection("users").doc(user._id).update({
+        const consumeResult = await db.collection("users").where({
+          _id: user._id,
+          hearts: _.gt(0)
+        }).update({
           data: {
             hearts: _.inc(-1)
           }
         });
+
+        if (!consumeResult.stats || consumeResult.stats.updated === 0) {
+          return {
+            code: -1,
+            message: "心动值不足",
+            data: { hearts: 0 }
+          };
+        }
 
         return {
           code: 0,
@@ -53,7 +72,7 @@ exports.main = async (event = {}) => {
         };
 
       case "reward": {
-        const source = event.source || "share_friend";
+        const source = normalizeShareSource(event.source || "share_friend");
         const today = new Date().toISOString().slice(0, 10);
         const rewardKey = "share_reward_" + today;
         const todayRewards = Number(user[rewardKey] || 0);
@@ -69,7 +88,7 @@ exports.main = async (event = {}) => {
           };
         }
 
-        const rewardAmount = source === "share_timeline" ? 2 : 1;
+        const rewardAmount = source === "timeline" ? 2 : 1;
 
         await db.collection("users").doc(user._id).update({
           data: {
@@ -84,6 +103,7 @@ exports.main = async (event = {}) => {
             hearts: Number(user.hearts || 0) + rewardAmount,
             rewarded: true,
             rewardAmount,
+            source,
             message: "获得 " + rewardAmount + " 点心动值"
           }
         };

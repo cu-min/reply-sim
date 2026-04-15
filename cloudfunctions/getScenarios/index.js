@@ -15,8 +15,7 @@ exports.main = async (event = {}) => {
         id: true,
         title: true,
         category: true,
-        cover: true,
-        character: true
+        cover: true
       })
       .get();
 
@@ -26,7 +25,7 @@ exports.main = async (event = {}) => {
     };
   } catch (error) {
     return {
-      code: 1,
+      code: -1,
       message: error.message || "获取剧本列表失败"
     };
   }

@@ -10,10 +10,16 @@ Page({
   },
 
   onLoad() {
+    this.skipNextOnShow = true;
     this.loadPageData();
   },
 
   onShow() {
+    if (this.skipNextOnShow) {
+      this.skipNextOnShow = false;
+      return;
+    }
+
     this.loadPageData();
   },
 

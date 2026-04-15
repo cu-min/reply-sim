@@ -6,7 +6,6 @@
     </view>
   </view>
 
-  <text class="chat-turn">{{turnLabel}}</text>
   <text class="chat-restore" wx:if="{{restoredSession}}">已恢复你上次未结束的这局对话</text>
 
   <scroll-view scroll-y class="chat-panel" scroll-with-animation scroll-into-view="{{scrollIntoViewId}}">

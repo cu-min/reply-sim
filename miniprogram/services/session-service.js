@@ -66,7 +66,10 @@ async function saveEnding(payload) {
   return callCloud("saveEnding", {
     session_id: payload.sessionId,
     scenario_id: payload.scenarioId,
+    ending_id: payload.endingId,
     ending_type: payload.endingType,
+    ending_label: payload.endingLabel,
+    badge_label: payload.badgeLabel,
     ending_text: payload.endingText
   });
 }

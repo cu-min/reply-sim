@@ -20,14 +20,18 @@ Page({
 
   async loadProfileData() {
     try {
-      const heartResult = await checkHearts();
-      if (heartResult) {
+      const [heartResult, profileResult] = await Promise.allSettled([
+        checkHearts(),
+        callCloud("getUserProfile", {})
+      ]);
+
+      if (heartResult.status === "fulfilled" && heartResult.value) {
         this.setData({
-          hearts: heartResult.hearts || 0
+          hearts: heartResult.value.hearts || 0
         });
       }
 
-      const profile = await callCloud("getUserProfile", {});
+      const profile = profileResult.status === "fulfilled" ? profileResult.value : null;
       if (profile) {
         this.setData({
           nickname: profile.nickname || "匿名旅人",
@@ -41,6 +45,11 @@ Page({
             dateStr: this.formatDate(item.updated_at || item.created_at)
           }))
         });
+        return;
+      }
+
+      if (heartResult.status === "rejected" && profileResult.status === "rejected") {
+        throw heartResult.reason || profileResult.reason || new Error("资料加载失败");
       }
     } catch (error) {
       console.error("[profile] 加载失败:", error);

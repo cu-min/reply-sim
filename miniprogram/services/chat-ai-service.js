@@ -23,7 +23,10 @@ function normalizeEnding(ending) {
   }
 
   return {
+    id: ending.id || "",
     type: ending.type || "unknown",
+    label: ending.label || "",
+    badge_label: ending.badge_label || ending.label || ending.type || "",
     relationship_result: ending.relationship_result || "",
     key_behavior_feedback: ending.key_behavior_feedback || "",
     missed_branch_hint: ending.missed_branch_hint || "",

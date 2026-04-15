@@ -5,7 +5,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
 const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
-const DEEPSEEK_API_KEY = "sk-f1f632344b48447d977ca98812c43174";
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || process.env.deepseek_api_key || "";
+const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || "deepseek-chat";
 
 function parseJSON(text) {
   const cleaned = String(text || "")
@@ -21,8 +22,12 @@ function parseJSON(text) {
 }
 
 async function callDeepSeek(systemPrompt, userPrompt) {
+  if (!DEEPSEEK_API_KEY) {
+    throw new Error("缺少 DeepSeek API Key 配置");
+  }
+
   const postData = JSON.stringify({
-    model: "deepseek-chat",
+    model: DEEPSEEK_MODEL,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt }
@@ -49,6 +54,10 @@ async function callDeepSeek(systemPrompt, userPrompt) {
         res.on("end", () => {
           try {
             const json = JSON.parse(body);
+            if (res.statusCode < 200 || res.statusCode >= 300) {
+              reject(new Error("DeepSeek 请求失败: " + (json.error?.message || body.slice(0, 200))));
+              return;
+            }
             if (json.choices && json.choices[0]) {
               resolve(json.choices[0].message.content);
               return;
@@ -75,6 +84,41 @@ async function callDeepSeek(systemPrompt, userPrompt) {
 function clampFavorability(value, fallback) {
   const numericValue = typeof value === "number" ? value : fallback;
   return Math.max(0, Math.min(100, numericValue));
+}
+
+function normalizeEndingMatch(ending, possibleEndings) {
+  if (!ending) {
+    return null;
+  }
+
+  const matchedEnding = (possibleEndings || []).find((item) =>
+    item.id === ending.id ||
+    item.type === ending.type ||
+    item.label === ending.label ||
+    item.badge_label === ending.badge_label
+  );
+
+  return {
+    id: ending.id || (matchedEnding && matchedEnding.id) || "",
+    type: ending.type || (matchedEnding && matchedEnding.type) || "unknown",
+    label: ending.label || (matchedEnding && matchedEnding.label) || "",
+    badge_label: ending.badge_label || (matchedEnding && matchedEnding.badge_label) || "",
+    relationship_result: ending.relationship_result || "",
+    key_behavior_feedback: ending.key_behavior_feedback || "",
+    missed_branch_hint: ending.missed_branch_hint || "",
+    literary_closing: ending.literary_closing || ""
+  };
+}
+
+function isValidEnding(ending) {
+  return Boolean(
+    ending &&
+      ending.type &&
+      ending.relationship_result &&
+      ending.key_behavior_feedback &&
+      ending.missed_branch_hint &&
+      ending.literary_closing
+  );
 }
 
 function buildSystemPrompt(character, background, currentMood, currentFavorability) {
@@ -273,6 +317,7 @@ async function generateResponse(session, userMessage) {
     session.current_favorability
   );
   const roundNumber = Math.floor(normalizeMessages(session).length / 2) + 1;
+  const canNaturallyEnd = roundNumber >= 8;
   const endingConditions = Array.isArray(endingTriggers.conditions)
     ? endingTriggers.conditions.map((item) => "- " + item).join("\n")
     : "- 根据对话语境判断是否已到合适收尾节点";
@@ -302,12 +347,18 @@ ${formatHistory(normalizeMessages(session))}
 ## 结局判定
 检查是否满足以下任一条件：
 ${endingConditions}
-- 对话轮数已达到 ${roundNumber} 轮（正常节奏下 8-12 轮结束）
+- 对话轮数已达到 8 轮，并且已经自然来到可以收束的位置
 
-如果满足结局条件，should_end 设为 true，并从以下结局中选择最匹配的：
+当前是否允许自然收尾：${canNaturallyEnd ? "是" : "否"}
+
+如果满足结局条件，should_end 设为 true，并从以下结局中选择最匹配的一个：
 ${JSON.stringify(possibleEndings)}
 
 如果触发结局，同时生成结局内容，包括：
+- id：匹配的结局 id
+- type：匹配的结局 type
+- label：匹配的结局 label
+- badge_label：匹配的结局 badge_label
 - relationship_result：一句话关系结果
 - key_behavior_feedback：指出具体哪句话起了关键作用
 - missed_branch_hint：暗示另一种可能（只暗示不剧透）
@@ -326,7 +377,10 @@ ${JSON.stringify(possibleEndings)}
 
 如果 should_end 为 true，ending 格式为：
 {
-  "type": "结局类型id",
+  "id": "结局id",
+  "type": "结局类型",
+  "label": "结局标题",
+  "badge_label": "结局标签",
   "relationship_result": "",
   "key_behavior_feedback": "",
   "missed_branch_hint": "",
@@ -341,20 +395,27 @@ ${JSON.stringify(possibleEndings)}
   }
   result.mood_update = result.mood_update || session.current_mood || "";
   result.favorability_change = typeof result.favorability_change === "number" ? result.favorability_change : 0;
-  result.new_favorability = clampFavorability(result.new_favorability, session.current_favorability);
+  result.new_favorability = clampFavorability(
+    result.new_favorability,
+    session.current_favorability + result.favorability_change
+  );
   result.emotion_hint = result.emotion_hint || "";
-  result.should_end = Boolean(result.should_end && result.ending);
+  result.ending = normalizeEndingMatch(result.ending, possibleEndings);
+  result.should_end = Boolean(result.should_end && isValidEnding(result.ending));
   if (!result.should_end) {
     result.ending = null;
   }
   return result;
 }
 
-async function loadSessionWithScenario(sessionId) {
-  const sessionDoc = await db.collection("sessions").doc(sessionId).get();
-  const session = sessionDoc.data;
+async function loadSessionWithScenario(sessionId, openid) {
+  const sessionRes = await db.collection("sessions").where({ _id: sessionId }).limit(1).get();
+  const session = sessionRes.data[0];
   if (!session) {
     throw new Error("会话不存在");
+  }
+  if (session.openid !== openid) {
+    throw new Error("无权访问该会话");
   }
   const scenarioRes = await db.collection("scenarios").where({ id: session.scenario_id }).limit(1).get();
 
@@ -379,7 +440,7 @@ exports.main = async (event = {}) => {
   }
 
   try {
-    const session = await loadSessionWithScenario(sessionId);
+    const session = await loadSessionWithScenario(sessionId, wxContext.OPENID);
     let result;
 
     switch (action) {
@@ -423,30 +484,49 @@ exports.main = async (event = {}) => {
             messages: finalMessages,
             current_mood: result.mood_update || session.current_mood,
             current_favorability: result.new_favorability,
+            status: result.should_end ? "ended" : session.status || "ongoing",
             updated_at: db.serverDate()
           }
         });
 
         if (result.should_end && result.ending) {
-          await db.collection("endings").add({
-            data: {
-              openid: wxContext.OPENID,
-              scenario_id: session.scenario_id,
-              session_id: sessionId,
-              ending_type: result.ending.type || "unknown",
-              ending_text: {
-                relationship_result: result.ending.relationship_result || "",
-                key_behavior_feedback: result.ending.key_behavior_feedback || "",
-                missed_branch_hint: result.ending.missed_branch_hint || "",
-                literary_closing: result.ending.literary_closing || ""
-              },
-              created_at: db.serverDate()
+          const existingEndingRes = await db
+            .collection("endings")
+            .where({ session_id: sessionId, openid: wxContext.OPENID })
+            .limit(1)
+            .get();
+          const existingEnding = existingEndingRes.data[0];
+          const endingData = {
+            openid: wxContext.OPENID,
+            scenario_id: session.scenario_id,
+            session_id: sessionId,
+            ending_id: result.ending.id || "",
+            ending_type: result.ending.type || "unknown",
+            ending_label: result.ending.label || result.ending.type || "未知结局",
+            badge_label: result.ending.badge_label || result.ending.label || result.ending.type || "未知结局",
+            ending_text: {
+              relationship_result: result.ending.relationship_result || "",
+              key_behavior_feedback: result.ending.key_behavior_feedback || "",
+              missed_branch_hint: result.ending.missed_branch_hint || "",
+              literary_closing: result.ending.literary_closing || ""
             }
-          });
+          };
 
+          if (existingEnding) {
+            await db.collection("endings").doc(existingEnding._id).update({
+              data: endingData
+            });
+          } else {
+            await db.collection("endings").add({
+              data: Object.assign({}, endingData, {
+                created_at: db.serverDate()
+              })
+            });
+          }
+        } else if (session.status === "ended") {
           await db.collection("sessions").doc(sessionId).update({
             data: {
-              status: "ended",
+              status: "ongoing",
               updated_at: db.serverDate()
             }
           });

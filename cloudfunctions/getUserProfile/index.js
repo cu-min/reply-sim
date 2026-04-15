@@ -71,7 +71,8 @@ exports.main = async () => {
         scenario_id: session.scenario_id,
         title: linkedScenario.title || session.scenario_id || "未命名剧本",
         status: session.status || "ongoing",
-        endingLabel: linkedEnding.ending_type || "",
+        endingId: linkedEnding.ending_id || "",
+        endingLabel: linkedEnding.ending_label || linkedEnding.badge_label || linkedEnding.ending_type || "",
         updated_at: updatedAt ? updatedAt.toISOString() : "",
         created_at: normalizeDate(session.created_at)
           ? normalizeDate(session.created_at).toISOString()
@@ -93,7 +94,7 @@ exports.main = async () => {
     };
   } catch (error) {
     return {
-      code: 1,
+      code: -1,
       message: error.message || "获取用户资料失败"
     };
   }

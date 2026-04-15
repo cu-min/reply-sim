@@ -1671,8 +1671,8 @@ exports.main = async () => {
     };
   } catch (error) {
     return {
-      code: 1,
-      message: error.message || "??????"
+      code: -1,
+      message: error.message || "导入剧本失败"
     };
   }
 };
