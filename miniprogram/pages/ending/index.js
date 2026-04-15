@@ -105,13 +105,6 @@ Page({
     });
   },
 
-  handleShare() {
-    wx.showToast({
-      title: "分享到好友试试看",
-      icon: "none"
-    });
-  },
-
   onShareAppMessage() {
     const ending = this.data.ending || {};
     return {

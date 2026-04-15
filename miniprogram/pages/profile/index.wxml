@@ -1,92 +1,69 @@
-<view class="page-shell profile-page" wx:if="{{profile}}">
-  <view class="surface-card profile-hero">
-    <view class="profile-top">
-      <view class="profile-avatar">回</view>
-      <view class="profile-copy">
-        <text class="profile-name serif-title">{{profile.nickname}}</text>
-        <text class="profile-signature">{{profile.signature}}</text>
+<view class="page-shell profile-page">
+  <view class="profile-card surface-card">
+    <view class="profile-header">
+      <image class="profile-avatar" src="{{avatar || '/assets/icons/default-avatar.png'}}" mode="aspectFill" />
+      <view class="profile-center">
+        <text class="profile-nickname">{{nickname || '匿名旅人'}}</text>
+        <text class="profile-bio">{{bio || '有些话，先在这里试着说。'}}</text>
+      </view>
+      <view class="profile-hearts">
+        <text class="hearts-icon">❤</text>
+        <text class="hearts-number">{{hearts}}</text>
       </view>
     </view>
-    <view class="heart-balance-row">
-      <view class="heart-balance">
-        <view class="heart-balance-top">
-          <text class="heart-number">{{profile.heartBalance}}</text>
-          <text class="recharge-link">充值 →</text>
-        </view>
-        <text class="heart-label">心动值余额</text>
-      </view>
-    </view>
-  </view>
 
-  <view class="section-block">
-    <view class="surface-card stats-card">
+    <view class="profile-stats">
       <view class="stat-item">
-        <text class="stat-number">{{profile.stats.experiencedCount}}</text>
+        <text class="stat-number">{{scenarioCount || 0}}</text>
         <text class="stat-label">已体验剧本</text>
       </view>
+      <view class="stat-divider"></view>
       <view class="stat-item">
-        <text class="stat-number">{{profile.stats.unlockedEndingCount}}</text>
+        <text class="stat-number">{{endingCount || 0}}</text>
         <text class="stat-label">解锁结局</text>
       </view>
+      <view class="stat-divider"></view>
       <view class="stat-item">
-        <text class="stat-number">{{profile.stats.totalTurns}}</text>
+        <text class="stat-number">{{totalRounds || 0}}</text>
         <text class="stat-label">累计对话轮数</text>
       </view>
     </view>
   </view>
 
-  <view class="section-block">
-    <view class="section-head">
-      <text class="section-title">历史记录</text>
-      <text class="section-note">本地 mock + 当前设备会话</text>
+  <view class="section-card surface-card" bindtap="toggleHistory">
+    <view class="section-card-header">
+      <text class="section-card-title">历史对话记录</text>
+      <text class="section-card-arrow {{historyExpanded ? 'arrow-up' : ''}}">></text>
     </view>
-    <block wx:if="{{profile.history.length}}">
-      <block wx:for="{{profile.history}}" wx:key="id">
-        <view class="surface-card history-card">
-          <view class="history-top">
-            <text class="history-title">{{item.scriptTitle}}</text>
-            <text class="fine-print">{{item.playedAt}}</text>
+
+    <view class="history-list" wx:if="{{historyExpanded}}">
+      <view class="history-empty" wx:if="{{!historyList || historyList.length === 0}}">
+        <text>还没有对话记录，去首页开始第一段体验吧</text>
+      </view>
+
+      <block wx:for="{{historyList}}" wx:key="_id">
+        <view class="history-item" data-id="{{item.scenario_id}}" catchtap="handleHistoryTap">
+          <view class="history-item-left">
+            <text class="history-title">{{item.title || item.scenario_id}}</text>
+            <text class="history-ending">{{item.endingLabel || '进行中'}}</text>
           </view>
-          <text class="history-summary">{{item.endingSummary}}</text>
-          <view class="history-bottom">
-            <text class="history-badge">{{item.badgeLabel}}</text>
-            <text class="fine-print">→</text>
-          </view>
+          <text class="history-date">{{item.dateStr}}</text>
         </view>
       </block>
-    </block>
-    <view class="empty-panel" wx:else>还没有历史记录，先去首页跑一局。</view>
+    </view>
   </view>
 
-  <view class="section-block">
-    <view class="section-head">
-      <text class="section-title">我的收藏剧本</text>
+  <view class="section-card surface-card" bindtap="handleSettings">
+    <view class="section-card-header">
+      <text class="section-card-title">设置</text>
+      <text class="section-card-arrow">></text>
     </view>
-    <block wx:if="{{favoriteScripts.length}}">
-      <block wx:for="{{favoriteScripts}}" wx:key="id">
-        <view class="surface-card favorite-card">
-          <view class="history-top">
-            <text class="favorite-title">{{item.title}}</text>
-            <text class="fine-print">→</text>
-          </view>
-          <text class="meta-line">{{item.meta}}</text>
-          <text class="favorite-copy">{{item.blurb}}</text>
-        </view>
-      </block>
-    </block>
-    <view class="empty-panel" wx:else>收藏功能已预留，后续可以接真实写入。</view>
   </view>
 
-  <view class="section-block">
-    <view class="section-head">
-      <text class="section-title">次要入口</text>
-    </view>
-    <view class="footer-links">
-      <text>设置</text>
-      <text>·</text>
-      <text>反馈</text>
-      <text>·</text>
-      <text>关于</text>
+  <view class="section-card surface-card" bindtap="handleAbout">
+    <view class="section-card-header">
+      <text class="section-card-title">关于如果这样回</text>
+      <text class="section-card-arrow">></text>
     </view>
   </view>
 </view>

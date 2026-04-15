@@ -81,7 +81,3 @@
 .ending-error {
   padding: var(--space-24);
 }
-
-.ending-share {
-  align-self: center;
-}

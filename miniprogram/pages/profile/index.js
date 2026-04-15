@@ -1,42 +1,99 @@
-const { getProfile } = require("../../services/profile-service");
-const { getScriptsByIds } = require("../../services/script-service");
+const { checkHearts } = require("../../services/heart-service");
+const { callCloud } = require("../../services/cloud-service");
 
 Page({
   data: {
-    profile: null,
-    favoriteScripts: [],
-    loadState: "loading"
-  },
-
-  onLoad() {
-    this.loadProfile();
+    nickname: "匿名旅人",
+    avatar: "",
+    bio: "有些话，先在这里试着说。",
+    hearts: 0,
+    scenarioCount: 0,
+    endingCount: 0,
+    totalRounds: 0,
+    historyExpanded: false,
+    historyList: []
   },
 
   onShow() {
-    this.loadProfile();
+    this.loadProfileData();
   },
 
-  async loadProfile() {
+  async loadProfileData() {
     try {
-      wx.showLoading({
-        title: "加载中"
-      });
+      const heartResult = await checkHearts();
+      if (heartResult) {
+        this.setData({
+          hearts: heartResult.hearts || 0
+        });
+      }
 
-      const profile = await getProfile();
-      const favoriteScripts = await getScriptsByIds(profile.favoriteScriptIds);
-
-      this.setData({
-        profile,
-        favoriteScripts,
-        loadState: "ready"
-      });
+      const profile = await callCloud("getUserProfile", {});
+      if (profile) {
+        this.setData({
+          nickname: profile.nickname || "匿名旅人",
+          avatar: profile.avatar || "",
+          hearts: typeof profile.hearts === "number" ? profile.hearts : this.data.hearts,
+          scenarioCount: profile.scenarioCount || 0,
+          endingCount: profile.endingCount || 0,
+          totalRounds: profile.totalRounds || 0,
+          historyList: (profile.recentSessions || []).map((item) => ({
+            ...item,
+            dateStr: this.formatDate(item.updated_at || item.created_at)
+          }))
+        });
+      }
     } catch (error) {
+      console.error("[profile] 加载失败:", error);
       wx.showToast({
         title: "资料加载失败",
         icon: "none"
       });
-    } finally {
-      wx.hideLoading();
     }
+  },
+
+  toggleHistory() {
+    this.setData({
+      historyExpanded: !this.data.historyExpanded
+    });
+  },
+
+  handleHistoryTap(event) {
+    const scenarioId = event.currentTarget.dataset.id;
+    if (!scenarioId) {
+      return;
+    }
+
+    wx.navigateTo({
+      url: "/pages/script-detail/index?scriptId=" + scenarioId
+    });
+  },
+
+  handleSettings() {
+    wx.showToast({
+      title: "设置功能开发中",
+      icon: "none"
+    });
+  },
+
+  handleAbout() {
+    wx.showModal({
+      title: "关于如果这样回",
+      content: "有些话说出口会后悔，有些话没说出口更后悔。\n\n如果这样回，是一个模拟真实对话的练习场。",
+      showCancel: false,
+      confirmText: "知道了"
+    });
+  },
+
+  formatDate(dateValue) {
+    if (!dateValue) {
+      return "";
+    }
+
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return (date.getMonth() + 1) + "." + date.getDate();
   }
 });
