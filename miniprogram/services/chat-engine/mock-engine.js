@@ -1,4 +1,4 @@
-const { scenarios } = require("../../mock/content");
+const { scenarioLibrary } = require("../../mock/content");
 const { getEndingResult, getScriptDetail } = require("../script-service");
 const {
   getActiveSessionMap,
@@ -11,12 +11,16 @@ function createSessionId(scriptId) {
   return scriptId + "-" + Date.now().toString(36);
 }
 
-function cloneMessage(message) {
+function getScenario(scriptId) {
+  return scenarioLibrary.find((item) => item.id === scriptId) || null;
+}
+
+function cloneMessage(turn) {
   return {
-    id: message.id + "-" + Date.now().toString(36),
-    role: message.role,
-    text: message.text,
-    emotionHint: message.emotionHint
+    id: turn.id + "-" + Date.now().toString(36),
+    role: "assistant",
+    text: turn.assistant_message,
+    emotionHint: turn.emotion_hint || ""
   };
 }
 
@@ -30,7 +34,8 @@ function formatPlayedAt(timestamp) {
 }
 
 function getTurns(scriptId) {
-  return scenarios[scriptId] || [];
+  const scenario = getScenario(scriptId);
+  return scenario ? scenario.turns : [];
 }
 
 function getSession(sessionId) {
@@ -39,7 +44,15 @@ function getSession(sessionId) {
 }
 
 function getIntentOptions(turn) {
-  return turn && turn.intentOptions ? turn.intentOptions : [];
+  if (!turn || !turn.strategies) {
+    return [];
+  }
+
+  return turn.strategies.map((item) => ({
+    id: item.id,
+    label: item.label,
+    description: item.description
+  }));
 }
 
 function getIntentOption(turn, intentId) {
@@ -47,11 +60,21 @@ function getIntentOption(turn, intentId) {
 }
 
 function getReplyOptionsForIntent(turn, intentId) {
-  if (!turn || !turn.replyOptionsByIntent || !intentId) {
+  if (!turn || !intentId || !turn.strategies) {
     return [];
   }
 
-  return turn.replyOptionsByIntent[intentId] || [];
+  const strategy = turn.strategies.find((item) => item.id === intentId);
+  if (!strategy) {
+    return [];
+  }
+
+  return strategy.replies.map((item) => ({
+    id: item.id,
+    label: item.style_label,
+    text: item.content,
+    tone: item.style_description
+  }));
 }
 
 function saveSession(session) {
@@ -67,7 +90,12 @@ function buildSessionView(session) {
 
   return {
     session,
-    currentTurn: session.status === "active" ? turn : null,
+    currentTurn: session.status === "active"
+      ? {
+          id: turn.id,
+          intentOptions: getIntentOptions(turn)
+        }
+      : null,
     messages: session.messages,
     replyOptions,
     selectedIntentId: session.selectedIntentId,
@@ -99,6 +127,7 @@ function saveHistoryRecord(session) {
       playedAtTs: timestamp,
       turnCount: session.messages.filter((item) => item.role === "user").length
     };
+
     saveCompletedHistory([record].concat(existing));
   }
 }
@@ -129,7 +158,7 @@ const mockChatEngine = {
       sessionId: createSessionId(scriptId),
       scriptId,
       currentTurnIndex: 0,
-      messages: [cloneMessage(firstTurn.assistantMessage)],
+      messages: [cloneMessage(firstTurn)],
       selectedIntentId: "",
       selectedReplyId: "",
       composerText: "",
@@ -137,6 +166,7 @@ const mockChatEngine = {
       endingId: "",
       endingPrompt: ""
     };
+
     saveSession(session);
     return session;
   },
@@ -257,11 +287,11 @@ const mockChatEngine = {
 
     if (nextTurn) {
       session.currentTurnIndex = session.currentTurnIndex + 1;
-      session.messages = session.messages.concat([cloneMessage(nextTurn.assistantMessage)]);
+      session.messages = session.messages.concat([cloneMessage(nextTurn)]);
     } else {
       session.status = "readyToFinish";
-      session.endingId = turn.endingId || "";
-      session.endingPrompt = turn.endingPrompt || "这段对话已经来到一个节点。";
+      session.endingId = turn.ending_id || "";
+      session.endingPrompt = turn.ending_prompt || "这段对话已经来到一个节点了。";
     }
 
     saveSession(session);
