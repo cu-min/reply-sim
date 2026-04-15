@@ -1,14 +1,24 @@
-const { scenarioLibrary } = require("../mock/content");
-const { getCompletedHistory } = require("../utils/storage");
+const { callCloud } = require("./cloud-service");
+const { getCompletedHistory, getStorageSync, setStorageSync } = require("../utils/storage");
 
-function getUnlockedEndingIds(scriptId, seededIds) {
-  const records = getCompletedHistory().filter((item) => item.scriptId === scriptId);
-  const runtimeIds = records.map((item) => item.endingId);
-  return Array.from(new Set([].concat(seededIds, runtimeIds)));
+const CACHE_KEYS = {
+  scriptList: "cache_scenarios_",
+  scriptDetail: "cache_scenario_detail_",
+  categories: "cache_scenario_categories"
+};
+
+function normalizeCategory(category) {
+  return category || "全部";
 }
 
-function getScenario(scriptId) {
-  return scenarioLibrary.find((item) => item.id === scriptId) || null;
+function getUnlockedEndingIds(scriptId) {
+  return Array.from(
+    new Set(
+      getCompletedHistory()
+        .filter((item) => item.scriptId === scriptId)
+        .map((item) => item.endingId)
+    )
+  );
 }
 
 function toMeta(tags) {
@@ -16,11 +26,6 @@ function toMeta(tags) {
 }
 
 function toDetail(scenario) {
-  const unlockedEndingIds = getUnlockedEndingIds(
-    scenario.id,
-    (scenario.seed_unlocked_endings || []).slice()
-  );
-
   return {
     id: scenario.id,
     title: scenario.title,
@@ -28,11 +33,12 @@ function toDetail(scenario) {
     openingLine: scenario.cover.opening_message,
     meta: toMeta(scenario.cover.tags),
     blurb: scenario.cover.subtitle,
-    tags: scenario.cover.tags,
-    unlockedEndingIds,
+    tags: scenario.cover.tags || [],
+    unlockedEndingIds: getUnlockedEndingIds(scenario.id),
     background: scenario.background,
     scenePrompt: scenario.scene_prompt,
-    availableEndingLabels: scenario.possible_endings.map((item) => item.label),
+    availableEndingLabels: (scenario.possible_endings || []).map((item) => item.label),
+    possibleEndings: scenario.possible_endings || [],
     character: {
       name: scenario.character.name,
       age: String(scenario.character.age),
@@ -40,9 +46,11 @@ function toDetail(scenario) {
       relationship: scenario.character.relationship,
       archetype: scenario.character.archetype,
       occupation: scenario.character.occupation,
-      personalityTags: scenario.cover.tags.slice(0, 2),
+      personalityTags: (scenario.cover.tags || []).slice(0, 2),
       speakingStyle: scenario.character.speaking_style,
-      currentAttitude: scenario.character.current_attitude
+      currentAttitude: scenario.character.current_attitude,
+      initialMood: scenario.character.initial_mood,
+      initialFavorability: scenario.character.initial_favorability
     }
   };
 }
@@ -60,42 +68,75 @@ function toSummary(detail) {
   };
 }
 
-function getCategories() {
-  return ["全部"].concat(
-    Array.from(new Set(scenarioLibrary.map((item) => item.category)))
+function getListCacheKey(category) {
+  return CACHE_KEYS.scriptList + normalizeCategory(category);
+}
+
+function updateCategoriesFromScripts(scripts) {
+  const categories = ["全部"].concat(
+    Array.from(new Set((scripts || []).map((item) => item.category).filter(Boolean)))
   );
+  setStorageSync(CACHE_KEYS.categories, categories);
+  return categories;
 }
 
-function getScriptList(category) {
-  const targetCategory = category || "全部";
-  const allSummaries = scenarioLibrary.map((item) => toSummary(toDetail(item)));
+function getCategories() {
+  return getStorageSync(CACHE_KEYS.categories, ["全部"]);
+}
 
-  if (targetCategory === "全部") {
-    return allSummaries;
+async function getScriptList(category) {
+  const targetCategory = normalizeCategory(category);
+
+  try {
+    const data = await callCloud("getScenarios", {
+      category: targetCategory === "全部" ? "" : targetCategory
+    });
+    const scripts = (data || []).map((item) => toSummary(toDetail(item)));
+
+    setStorageSync(getListCacheKey(targetCategory), scripts);
+    if (targetCategory === "全部") {
+      updateCategoriesFromScripts(scripts);
+    }
+
+    return scripts;
+  } catch (error) {
+    const cached = getStorageSync(getListCacheKey(targetCategory), null);
+    if (cached) {
+      return cached;
+    }
+    throw error;
   }
-
-  return allSummaries.filter((item) => item.category === targetCategory);
 }
 
-function getScriptDetail(scriptId) {
-  const scenario = getScenario(scriptId);
-  return scenario ? toDetail(scenario) : null;
-}
-
-function getScriptsByIds(ids) {
-  return ids
-    .map((id) => getScriptDetail(id))
-    .filter(Boolean)
-    .map(toSummary);
-}
-
-function getEndingResult(scriptId, endingId) {
-  const scenario = getScenario(scriptId);
-  if (!scenario) {
+async function getScriptDetail(scriptId) {
+  if (!scriptId) {
     return null;
   }
 
-  const ending = scenario.possible_endings.find((item) => item.id === endingId);
+  try {
+    const data = await callCloud("getScenarioDetail", {
+      scenario_id: scriptId
+    });
+    const detail = toDetail(data);
+    setStorageSync(CACHE_KEYS.scriptDetail + scriptId, detail);
+    return detail;
+  } catch (error) {
+    return getStorageSync(CACHE_KEYS.scriptDetail + scriptId, null);
+  }
+}
+
+async function getScriptsByIds(ids) {
+  const all = await getScriptList("全部");
+  return (ids || []).map((id) => all.find((item) => item.id === id)).filter(Boolean);
+}
+
+async function getEndingResult(scriptId, endingId) {
+  const detail = await getScriptDetail(scriptId);
+  if (!detail) {
+    return null;
+  }
+
+  const ending = (detail.possibleEndings || []).find((item) => item.id === endingId);
   if (!ending) {
     return null;
   }

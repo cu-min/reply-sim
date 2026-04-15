@@ -1,7 +1,15 @@
 const { getChatEngine } = require("./chat-engine/index");
+const { callCloud } = require("./cloud-service");
 
 function createMockSession(scriptId) {
   return getChatEngine().createSession(scriptId);
+}
+
+async function createSession(scenarioId) {
+  const data = await callCloud("createSession", {
+    scenario_id: scenarioId
+  });
+  return data ? data._id : "";
 }
 
 function getCurrentTurn(sessionId) {
@@ -40,7 +48,31 @@ function getRecoverableSessionId(scriptId) {
   return getChatEngine().getRecoverableSessionId(scriptId);
 }
 
+async function syncSession(sessionId, payload) {
+  return callCloud("syncSession", {
+    session_id: sessionId,
+    messages: (payload.messages || []).map((item) => ({
+      role: item.role,
+      name: item.name || "",
+      content: item.text || item.content || "",
+      timestamp: item.timestamp || Date.now()
+    })),
+    current_mood: payload.currentMood || "",
+    current_favorability: Number(payload.currentFavorability || 0)
+  });
+}
+
+async function saveEnding(payload) {
+  return callCloud("saveEnding", {
+    session_id: payload.sessionId,
+    scenario_id: payload.scenarioId,
+    ending_type: payload.endingType,
+    ending_text: payload.endingText
+  });
+}
+
 module.exports = {
+  createSession,
   createMockSession,
   getCurrentTurn,
   selectIntent,
@@ -50,5 +82,7 @@ module.exports = {
   updateComposer,
   submitReply,
   finishSession,
-  getRecoverableSessionId
+  getRecoverableSessionId,
+  syncSession,
+  saveEnding
 };

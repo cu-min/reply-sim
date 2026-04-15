@@ -1,5 +1,4 @@
 const { scenarioLibrary } = require("../../mock/content");
-const { getEndingResult, getScriptDetail } = require("../script-service");
 const {
   getActiveSessionMap,
   getCompletedHistory,
@@ -20,7 +19,8 @@ function cloneMessage(turn) {
     id: turn.id + "-" + Date.now().toString(36),
     role: "assistant",
     text: turn.assistant_message,
-    emotionHint: turn.emotion_hint || ""
+    emotionHint: turn.emotion_hint || "",
+    timestamp: Date.now()
   };
 }
 
@@ -107,22 +107,24 @@ function buildSessionView(session) {
 }
 
 function saveHistoryRecord(session) {
-  const detail = getScriptDetail(session.scriptId);
-  const ending = getEndingResult(session.scriptId, session.endingId);
+  const scenario = getScenario(session.scriptId);
+  const ending = scenario
+    ? (scenario.possible_endings || []).find((item) => item.id === session.endingId)
+    : null;
   const existing = getCompletedHistory();
   const alreadySaved = existing.some((item) => item.sessionId === session.sessionId);
 
-  if (!alreadySaved && detail && ending) {
+  if (!alreadySaved && scenario && ending) {
     const timestamp = Date.now();
     const record = {
       id: "history-" + session.sessionId,
       sessionId: session.sessionId,
       scriptId: session.scriptId,
-      scriptTitle: detail.title,
+      scriptTitle: scenario.title,
       endingId: ending.id,
-      endingTitle: ending.title,
-      endingSummary: ending.relationSummary,
-      badgeLabel: ending.badgeLabel,
+      endingTitle: ending.label,
+      endingSummary: ending.relationship_result,
+      badgeLabel: ending.badge_label,
       playedAt: formatPlayedAt(timestamp),
       playedAtTs: timestamp,
       turnCount: session.messages.filter((item) => item.role === "user").length
@@ -276,7 +278,8 @@ const mockChatEngine = {
       {
         id: session.sessionId + "-user-" + Date.now().toString(36),
         role: "user",
-        text: finalText
+        text: finalText,
+        timestamp: Date.now()
       }
     ]);
 
