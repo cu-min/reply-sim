@@ -1,4 +1,5 @@
 const { getScriptDetail } = require("../../services/script-service");
+const { createSession } = require("../../services/session-service");
 
 Page({
   data: {
@@ -7,9 +8,14 @@ Page({
     errorMessage: ""
   },
 
-  onLoad(query) {
+  async onLoad(query) {
     const scriptId = query.scriptId;
-    const script = getScriptDetail(scriptId);
+    wx.showLoading({
+      title: "加载中"
+    });
+
+    const script = await getScriptDetail(scriptId);
+    wx.hideLoading();
 
     if (!script) {
       wx.showToast({
@@ -31,14 +37,25 @@ Page({
     });
   },
 
-  handleStartChat() {
+  async handleStartChat() {
     const script = this.data.script;
     if (!script) {
       return;
     }
 
+    let cloudSessionId = "";
+
+    try {
+      cloudSessionId = await createSession(script.id);
+    } catch (error) {
+      wx.showToast({
+        title: "云端会话未创建，先进入本地体验",
+        icon: "none"
+      });
+    }
+
     wx.navigateTo({
-      url: "/pages/chat/index?scriptId=" + script.id
+      url: "/pages/chat/index?scriptId=" + script.id + (cloudSessionId ? "&cloudSessionId=" + cloudSessionId : "")
     });
   },
 

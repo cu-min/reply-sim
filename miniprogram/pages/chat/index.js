@@ -5,12 +5,25 @@ const {
   getCurrentTurn,
   getRecoverableSessionId,
   resetIntentSelection,
+  saveEnding,
   selectIntent,
   selectReply,
   submitReply,
+  syncSession,
   updateComposer
 } = require("../../services/session-service");
-const { getScriptDetail } = require("../../services/script-service");
+const { getEndingResult, getScriptDetail } = require("../../services/script-service");
+
+function deriveCurrentMood(state, script) {
+  const lastAssistantMessage = state.messages.slice().reverse().find((item) => item.role === "assistant");
+  return (lastAssistantMessage && lastAssistantMessage.emotionHint) || (script && script.character.currentAttitude) || "";
+}
+
+function deriveCurrentFavorability(state, script) {
+  const base = Number(script && script.character && script.character.initialFavorability) || 0;
+  const userMessageCount = state.messages.filter((item) => item.role === "user").length;
+  return base + userMessageCount;
+}
 
 function syncPageState(page, state, script) {
   const currentTurn = state.currentTurn;
@@ -80,6 +93,7 @@ Page({
   data: {
     script: null,
     sessionId: "",
+    cloudSessionId: "",
     messages: [],
     intentOptions: [],
     replyOptions: [],
@@ -102,16 +116,17 @@ Page({
     errorMessage: ""
   },
 
-  onLoad(query) {
+  async onLoad(query) {
     const requestedScriptId = query.scriptId;
-    const sessionId = query.sessionId;
-    let state = sessionId ? getCurrentTurn(sessionId) : null;
+    const localSessionId = query.sessionId;
+    const cloudSessionId = query.cloudSessionId || "";
+    let state = localSessionId ? getCurrentTurn(localSessionId) : null;
     let scriptId = requestedScriptId || (state ? state.session.scriptId : "");
-    let script = getScriptDetail(scriptId);
+    let script = await getScriptDetail(scriptId);
 
     if (!script && state) {
       scriptId = state.session.scriptId;
-      script = getScriptDetail(scriptId);
+      script = await getScriptDetail(scriptId);
     }
 
     if (!script) {
@@ -130,7 +145,7 @@ Page({
       state = null;
     }
 
-    const recoveredSessionId = !sessionId ? getRecoverableSessionId(scriptId) : null;
+    const recoveredSessionId = !localSessionId ? getRecoverableSessionId(scriptId) : null;
     if (!state && recoveredSessionId) {
       state = getCurrentTurn(recoveredSessionId);
     }
@@ -164,9 +179,26 @@ Page({
 
     syncPageState(this, state, script);
     this.setData({
-      restoredSession: Boolean(recoveredSessionId || sessionId),
+      cloudSessionId,
+      restoredSession: Boolean(recoveredSessionId || localSessionId),
       isTyping: false
     });
+
+    this.persistCloudSession(state);
+  },
+
+  async persistCloudSession(state) {
+    if (!this.data.cloudSessionId || !state || !this.data.script) {
+      return;
+    }
+
+    try {
+      await syncSession(this.data.cloudSessionId, {
+        messages: state.messages,
+        currentMood: deriveCurrentMood(state, this.data.script),
+        currentFavorability: deriveCurrentFavorability(state, this.data.script)
+      });
+    } catch (error) {}
   },
 
   handleIntentSelect(event) {
@@ -212,7 +244,7 @@ Page({
     }
   },
 
-  handleSend() {
+  async handleSend() {
     if (this.data.isTyping) {
       return;
     }
@@ -251,6 +283,8 @@ Page({
       return;
     }
 
+    this.persistCloudSession(state);
+
     const lastMessage = state.messages[state.messages.length - 1];
     const shouldSimulateTyping =
       !state.canFinish &&
@@ -279,7 +313,7 @@ Page({
     });
   },
 
-  handleSeeEnding() {
+  async handleSeeEnding() {
     const result = finishSession(this.data.sessionId);
     if (!result) {
       wx.showToast({
@@ -287,6 +321,25 @@ Page({
         icon: "none"
       });
       return;
+    }
+
+    if (this.data.cloudSessionId) {
+      try {
+        const ending = await getEndingResult(result.scriptId, result.endingId);
+        if (ending) {
+          await saveEnding({
+            sessionId: this.data.cloudSessionId,
+            scenarioId: result.scriptId,
+            endingType: ending.id,
+            endingText: {
+              relationship_result: ending.relationSummary,
+              key_behavior_feedback: ending.keyFeedback,
+              missed_branch_hint: ending.missedBranchHint,
+              literary_closing: ending.closingLine
+            }
+          });
+        }
+      } catch (error) {}
     }
 
     wx.navigateTo({

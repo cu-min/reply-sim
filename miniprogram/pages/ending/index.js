@@ -25,9 +25,9 @@ Page({
     errorMessage: ""
   },
 
-  onLoad(query) {
-    const script = getScriptDetail(query.scriptId);
-    const ending = getEndingResult(query.scriptId, query.endingId);
+  async onLoad(query) {
+    const script = await getScriptDetail(query.scriptId);
+    const ending = await getEndingResult(query.scriptId, query.endingId);
 
     if (!script || !ending) {
       wx.showToast({
