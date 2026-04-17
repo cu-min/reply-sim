@@ -17,7 +17,10 @@
   </view>
 
   <view class="ending-actions">
-    <button class="primary-button" open-type="share" bindtap="handleShareReward">一键分享</button>
+    <button class="share-btn ending-share-button" open-type="share" bindtap="handleShareReward">
+      <image class="share-icon" src="/assets/icons/share.png" mode="aspectFit" />
+      <text>一键分享</text>
+    </button>
     <button class="secondary-button ending-action-secondary" bindtap="handleReplay">再来一局</button>
     <button class="ending-action-link" bindtap="handleReplay">换个方式</button>
   </view>

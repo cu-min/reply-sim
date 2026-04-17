@@ -53,6 +53,12 @@
   gap: var(--space-12);
 }
 
+.ending-share-button {
+  width: 100%;
+  min-height: 84rpx;
+  justify-content: center;
+}
+
 .ending-action-secondary {
   margin-top: 0;
 }

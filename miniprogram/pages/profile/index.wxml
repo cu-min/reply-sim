@@ -7,7 +7,11 @@
         <text class="profile-bio">{{bio || '有些话，先在这里试着说。'}}</text>
       </view>
       <view class="profile-hearts">
-        <text class="hearts-icon">❤</text>
+        <image
+          class="hearts-icon-image"
+          src="{{hearts > 0 ? '/assets/icons/like.png' : '/assets/icons/dislike.png'}}"
+          mode="aspectFit"
+        />
         <text class="hearts-number">{{hearts}}</text>
       </view>
     </view>
@@ -30,40 +34,56 @@
     </view>
   </view>
 
-  <view class="section-card surface-card" bindtap="toggleHistory">
-    <view class="section-card-header">
-      <text class="section-card-title">历史对话记录</text>
-      <text class="section-card-arrow {{historyExpanded ? 'arrow-up' : ''}}">></text>
-    </view>
-
-    <view class="history-list" wx:if="{{historyExpanded}}">
-      <view class="history-empty" wx:if="{{!historyList || historyList.length === 0}}">
-        <text>还没有对话记录，去首页开始第一段体验吧</text>
+  <view class="profile-section">
+    <text class="profile-section-label">最近记录</text>
+    <view class="section-list surface-card">
+      <view class="section-row section-row--expanded" bindtap="toggleHistory">
+        <view class="section-card-main">
+          <image class="section-card-icon" src="/assets/icons/history.png" mode="aspectFit" />
+          <text class="section-card-title">历史对话记录</text>
+        </view>
+        <text class="section-card-arrow {{historyExpanded ? 'section-card-arrow--down' : ''}}">›</text>
       </view>
 
-      <block wx:for="{{historyList}}" wx:key="_id">
-        <view class="history-item" data-id="{{item.scenario_id}}" catchtap="handleHistoryTap">
-          <view class="history-item-left">
-            <text class="history-title">{{item.title || item.scenario_id}}</text>
-            <text class="history-ending">{{item.endingLabel || '进行中'}}</text>
-          </view>
-          <text class="history-date">{{item.dateStr}}</text>
+      <view class="history-list" wx:if="{{historyExpanded}}">
+        <view class="history-empty" wx:if="{{!historyList || historyList.length === 0}}">
+          <text>还没有对话记录，去首页开始第一段体验吧</text>
         </view>
-      </block>
+
+        <block wx:for="{{historyList}}" wx:key="_id">
+          <view class="history-item" data-id="{{item.scenario_id}}" catchtap="handleHistoryTap">
+            <view class="history-item-left">
+              <text class="history-title">{{item.title || item.scenario_id}}</text>
+              <text class="history-ending">{{item.endingLabel || '进行中'}}</text>
+            </view>
+            <view class="history-time-block">
+              <text class="history-date">{{item.dateStr}}</text>
+              <text class="history-time">{{item.timeStr}}</text>
+            </view>
+          </view>
+        </block>
+      </view>
     </view>
   </view>
 
-  <view class="section-card surface-card" bindtap="handleSettings">
-    <view class="section-card-header">
-      <text class="section-card-title">设置</text>
-      <text class="section-card-arrow">></text>
-    </view>
-  </view>
+  <view class="profile-section">
+    <text class="profile-section-label">功能</text>
+    <view class="section-list surface-card">
+      <view class="section-row" bindtap="handleSettings">
+        <view class="section-card-main">
+          <image class="section-card-icon" src="/assets/icons/setting.png" mode="aspectFit" />
+          <text class="section-card-title">设置</text>
+        </view>
+        <text class="section-card-arrow">›</text>
+      </view>
 
-  <view class="section-card surface-card" bindtap="handleAbout">
-    <view class="section-card-header">
-      <text class="section-card-title">关于如果这样回</text>
-      <text class="section-card-arrow">></text>
+      <view class="section-row" bindtap="handleAbout">
+        <view class="section-card-main">
+          <image class="section-card-icon" src="/assets/icons/more.png" mode="aspectFit" />
+          <text class="section-card-title">更多</text>
+        </view>
+        <text class="section-card-arrow">›</text>
+      </view>
     </view>
   </view>
 </view>

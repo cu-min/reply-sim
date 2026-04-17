@@ -1,6 +1,9 @@
 <view class="page-shell home-page">
   <view class="surface-card hero-card">
-    <text class="hero-copy">像深夜翻开一本旧日记。先选一段想聊的关系，看看今晚会走到哪里。</text>
+    <view class="hero-copy-group">
+      <text class="hero-lead serif-title">有些话说出口就后悔，有些话没说出口更后悔。</text>
+      <text class="hero-copy">「如果这样回」是一个模拟真实对话的演练场——前任的深夜问候、暗恋对象的突然搭话、领导的咄咄逼人、客户的无理要求……</text>
+    </view>
   </view>
 
   <view class="section-block">
@@ -13,18 +16,15 @@
       <view class="featured-row">
         <block wx:for="{{featuredScripts}}" wx:key="id">
           <view class="surface-card featured-card" data-id="{{item.id}}" bindtap="handleOpenDetail">
-            <text class="featured-scene">{{item.category}}</text>
-            <text class="featured-name">{{item.title}}</text>
-            <view class="opening-bubble">
+            <view class="opening-bubble opening-bubble--featured">
               <text class="opening-text">{{item.openingLine}}</text>
             </view>
-            <text class="meta-line">{{item.meta}}</text>
             <text class="featured-copy">{{item.blurb}}</text>
-            <view class="featured-bottom">
-              <text class="featured-badge">
-                {{item.unlockedEndingIds.length ? '已解锁 ' + item.unlockedEndingIds.length + ' 个结局' : '还没解锁结局'}}
+            <view class="card-bottom-row">
+              <text class="card-tags meta-line">{{item.meta}}</text>
+              <text class="card-unlocked">
+                {{item.unlockedEndingIds.length ? '已解锁 ' + item.unlockedEndingIds.length + ' 个结局' : '尚未解锁结局'}}
               </text>
-              <text class="featured-dot"></text>
             </view>
           </view>
         </block>
@@ -62,24 +62,13 @@
     <block wx:if="{{!isEmpty}}">
       <block wx:for="{{scripts}}" wx:key="id">
         <view class="surface-card list-card" data-id="{{item.id}}" bindtap="handleOpenDetail">
-          <view class="list-card-top">
-            <text class="list-card-title">{{item.title}}</text>
-            <text class="list-card-tag">{{item.category}}</text>
-          </view>
-          <view class="list-card-content">
-            <view class="list-card-bubble">
-              <text class="list-card-opening">{{item.openingLine}}</text>
-            </view>
-            <text class="meta-line list-card-meta">{{item.meta}}</text>
+          <view class="list-card-bubble">
+            <text class="list-card-opening">{{item.openingLine}}</text>
           </view>
           <text class="list-card-copy">{{item.blurb}}</text>
-          <view class="list-card-bottom">
-            <view class="tag-row">
-              <block wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">
-                <text class="mini-tag">{{tag}}</text>
-              </block>
-            </view>
-            <text class="list-card-unlocked">
+          <view class="card-bottom-row">
+            <text class="card-tags meta-line">{{item.meta}}</text>
+            <text class="card-unlocked">
               {{item.unlockedEndingIds.length ? '已解锁 ' + item.unlockedEndingIds.length + ' 个结局' : '尚未解锁结局'}}
             </text>
           </view>

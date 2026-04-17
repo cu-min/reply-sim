@@ -42,7 +42,7 @@ Page({
           totalRounds: profile.totalRounds || 0,
           historyList: (profile.recentSessions || []).map((item) => ({
             ...item,
-            dateStr: this.formatDate(item.updated_at || item.created_at)
+            ...this.formatDateTime(item.updated_at || item.created_at)
           }))
         });
         return;
@@ -93,16 +93,30 @@ Page({
     });
   },
 
-  formatDate(dateValue) {
+  formatDateTime(dateValue) {
     if (!dateValue) {
-      return "";
+      return {
+        dateStr: "",
+        timeStr: ""
+      };
     }
 
     const date = new Date(dateValue);
     if (Number.isNaN(date.getTime())) {
-      return "";
+      return {
+        dateStr: "",
+        timeStr: ""
+      };
     }
 
-    return (date.getMonth() + 1) + "." + date.getDate();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return {
+      dateStr: month + "." + day,
+      timeStr: hours + ":" + minutes
+    };
   }
 });

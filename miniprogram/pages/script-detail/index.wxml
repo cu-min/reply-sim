@@ -1,35 +1,10 @@
 <view class="page-shell detail-page" wx:if="{{loadState === 'ready' && script}}">
   <view class="surface-card detail-character-card">
-    <text class="eyebrow">{{script.category}} · 预设剧本</text>
-    <text class="detail-title serif-title">{{script.character.name}}</text>
-    <view class="tag-row detail-tag-row">
-      <text class="mini-tag">{{script.character.relationship}}</text>
-      <text class="mini-tag">{{script.character.archetype}}</text>
-      <block wx:for="{{script.character.personalityTags}}" wx:key="*this">
-        <text class="mini-tag">{{item}}</text>
-      </block>
+    <text class="detail-title serif-title">{{script.title}}</text>
+    <view class="detail-opening-bubble">
+      <text class="detail-opening-text">{{script.openingLine}}</text>
     </view>
-    <text class="detail-copy">{{script.character.speakingStyle}}</text>
-  </view>
-
-  <view class="section-block">
-    <view class="section-head">
-      <text class="section-title">故事背景</text>
-    </view>
-    <view class="surface-card detail-card">
-      <text>{{script.background}}</text>
-    </view>
-  </view>
-
-  <view class="section-block">
-    <view class="section-head">
-      <text class="section-title">人物侧写</text>
-    </view>
-    <view class="surface-card detail-card">
-      <text class="detail-copy">当前态度：{{script.character.currentAttitude}}</text>
-      <text class="meta-line detail-meta">{{script.character.age}}岁 · {{script.character.occupation}}</text>
-      <text class="detail-copy">{{script.meta}}</text>
-    </view>
+    <text class="meta-line detail-meta">{{script.meta}}</text>
   </view>
 
   <view class="detail-actions">
