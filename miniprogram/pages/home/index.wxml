@@ -7,6 +7,12 @@
   </view>
 
   <view class="section-block">
+    <view class="empty-panel" wx:if="{{loadHint}}">
+      {{loadHint}}
+    </view>
+  </view>
+
+  <view class="section-block">
     <view class="section-head">
       <text class="section-title">今晚想聊哪段</text>
       <text class="section-note">3 段推荐场景</text>

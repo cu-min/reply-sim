@@ -7,6 +7,19 @@ const CACHE_KEYS = {
   categories: "cache_scenario_categories"
 };
 
+function getLocalScenarioLibrary() {
+  const { scenarioLibrary } = require("../mock/content");
+  return Array.isArray(scenarioLibrary) ? scenarioLibrary : [];
+}
+
+function markLocalFallback(target) {
+  if (target && typeof target === "object") {
+    target.__fallbackSource = "local";
+  }
+
+  return target;
+}
+
 function normalizeCategory(category) {
   return category || "全部";
 }
@@ -89,6 +102,25 @@ function getCategories() {
   return getStorageSync(CACHE_KEYS.categories, ["全部"]);
 }
 
+function getLocalScriptList(category) {
+  const targetCategory = normalizeCategory(category);
+  const localScripts = getLocalScenarioLibrary().map(normalizeScenarioListItem);
+  const filteredScripts = targetCategory === "全部"
+    ? localScripts
+    : localScripts.filter((item) => item.category === targetCategory);
+
+  return markLocalFallback(filteredScripts);
+}
+
+function getLocalScriptDetail(scriptId) {
+  const scenario = getLocalScenarioLibrary().find((item) => item.id === scriptId);
+  if (!scenario) {
+    return null;
+  }
+
+  return markLocalFallback(normalizeScenarioDetail(scenario));
+}
+
 async function getScriptList(category) {
   const targetCategory = normalizeCategory(category);
 
@@ -109,6 +141,16 @@ async function getScriptList(category) {
     if (cached) {
       return cached;
     }
+
+    const localLibrary = getLocalScenarioLibrary();
+    if (localLibrary.length > 0) {
+      const fallbackScripts = getLocalScriptList(targetCategory);
+      if (targetCategory === "全部") {
+        updateCategoriesFromScripts(fallbackScripts);
+      }
+      return fallbackScripts;
+    }
+
     throw error;
   }
 }
@@ -126,7 +168,12 @@ async function getScriptDetail(scriptId) {
     setStorageSync(CACHE_KEYS.scriptDetail + scriptId, detail);
     return detail;
   } catch (error) {
-    return getStorageSync(CACHE_KEYS.scriptDetail + scriptId, null);
+    const cached = getStorageSync(CACHE_KEYS.scriptDetail + scriptId, null);
+    if (cached) {
+      return cached;
+    }
+
+    return getLocalScriptDetail(scriptId);
   }
 }
 

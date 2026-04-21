@@ -74,11 +74,12 @@ async function generateReplies(sessionId, strategy) {
   };
 }
 
-async function generateResponse(sessionId, userMessage) {
+async function generateResponse(sessionId, userMessage, requestId) {
   const data = await callCloud("chatEngine", {
     action: "generateResponse",
     session_id: sessionId,
-    user_message: userMessage
+    user_message: userMessage,
+    request_id: requestId
   });
 
   return normalizeResponse(data);

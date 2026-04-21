@@ -23,6 +23,10 @@ function isCompleteEndingText(endingText) {
   ].every((item) => Boolean(String(item || "").trim()));
 }
 
+function getEndingDocId(sessionId, openid) {
+  return "ending_" + sessionId + "_" + openid;
+}
+
 exports.main = async (event = {}) => {
   try {
     const {
@@ -69,47 +73,26 @@ exports.main = async (event = {}) => {
       };
     }
 
-    const existingRes = await db.collection("endings").where({ session_id: sessionId, openid }).limit(1).get();
-    const existingEnding = existingRes.data[0];
+    const endingDocId = getEndingDocId(sessionId, openid);
+    const endingRef = db.collection("endings").doc(endingDocId);
+    const existingEnding = await endingRef.get().catch(() => ({ data: null }));
 
-    if (existingEnding) {
-      await db.collection("endings").doc(existingEnding._id).update({
-        data: {
-          ending_id: endingId || existingEnding.ending_id || "",
-          ending_type: endingType,
-          ending_label: endingLabel || existingEnding.ending_label || endingType,
-          badge_label: badgeLabel || existingEnding.badge_label || endingLabel || endingType,
-          ending_text: endingText
-        }
-      });
-
-      await db.collection("sessions").doc(sessionId).update({
-        data: {
-          status: "ended",
-          updated_at: db.serverDate()
-        }
-      });
-
-      return {
-        code: 0,
-        data: {
-          _id: existingEnding._id,
-          duplicated: true
-        }
-      }
-    }
-
-    const result = await db.collection("endings").add({
+    await endingRef.set({
       data: {
         openid,
         scenario_id: scenarioId,
         session_id: sessionId,
-        ending_id: endingId || "",
+        ending_id: endingId || (existingEnding.data && existingEnding.data.ending_id) || "",
         ending_type: endingType,
-        ending_label: endingLabel || endingType,
-        badge_label: badgeLabel || endingLabel || endingType,
+        ending_label: endingLabel || (existingEnding.data && existingEnding.data.ending_label) || endingType,
+        badge_label:
+          badgeLabel ||
+          (existingEnding.data && existingEnding.data.badge_label) ||
+          endingLabel ||
+          endingType,
         ending_text: endingText,
-        created_at: db.serverDate()
+        created_at: (existingEnding.data && existingEnding.data.created_at) || db.serverDate(),
+        updated_at: db.serverDate()
       }
     });
 
@@ -123,7 +106,8 @@ exports.main = async (event = {}) => {
     return {
       code: 0,
       data: {
-        _id: result._id
+        _id: endingDocId,
+        duplicated: Boolean(existingEnding.data)
       }
     };
   } catch (error) {

@@ -38,6 +38,9 @@ exports.main = async (event = {}) => {
       messages: [],
       current_mood: character.initial_mood || character.current_attitude || "",
       current_favorability: clampFavorability(character.initial_favorability),
+      first_turn_consumed: false,
+      first_turn_consumed_at: null,
+      first_turn_request_id: "",
       status: "ongoing",
       created_at: db.serverDate(),
       updated_at: db.serverDate()

@@ -1,6 +1,23 @@
 const { checkHearts } = require("../../services/heart-service");
 const { callCloud } = require("../../services/cloud-service");
 
+function settle(promise) {
+  return promise.then(
+    function (value) {
+      return {
+        status: "fulfilled",
+        value: value
+      };
+    },
+    function (reason) {
+      return {
+        status: "rejected",
+        reason: reason
+      };
+    }
+  );
+}
+
 Page({
   data: {
     nickname: "匿名旅人",
@@ -20,10 +37,12 @@ Page({
 
   async loadProfileData() {
     try {
-      const [heartResult, profileResult] = await Promise.allSettled([
-        checkHearts(),
-        callCloud("getUserProfile", {})
+      const results = await Promise.all([
+        settle(checkHearts()),
+        settle(callCloud("getUserProfile", {}))
       ]);
+      const heartResult = results[0];
+      const profileResult = results[1];
 
       if (heartResult.status === "fulfilled" && heartResult.value) {
         this.setData({
@@ -79,7 +98,7 @@ Page({
 
   handleSettings() {
     wx.showToast({
-      title: "设置功能开发中",
+      title: "设置暂未开放",
       icon: "none"
     });
   },

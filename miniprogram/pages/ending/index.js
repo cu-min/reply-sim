@@ -1,5 +1,4 @@
 const { getEndingResult, getScriptDetail } = require("../../services/script-service");
-const { rewardShareHearts } = require("../../services/heart-service");
 
 function buildSummaryParagraphs(ending) {
   if (!ending) {
@@ -74,7 +73,7 @@ Page({
           script: script || null,
           ending: null,
           loadState: "error",
-          errorMessage: "这页结局没有找到，可能是直接进入了无效链接。"
+          errorMessage: "这一页结局没有找到，可能是直接进入了无效链接。"
         });
         return;
       }
@@ -132,28 +131,5 @@ Page({
       title: ending.closingLine || "如果这样回——你会怎么选？",
       query: ""
     };
-  },
-
-  async handleShareReward() {
-    try {
-      const result = await rewardShareHearts("share_friend");
-      if (result && result.rewarded) {
-        wx.showToast({
-          title: "+" + result.rewardAmount + " 心动值",
-          icon: "none",
-          duration: 2000
-        });
-        return;
-      }
-
-      if (result && result.message) {
-        wx.showToast({
-          title: result.message,
-          icon: "none"
-        });
-      }
-    } catch (error) {
-      console.error("[ending] 分享奖励失败:", error);
-    }
   }
 });

@@ -3,6 +3,11 @@ const cloud = require("wx-server-sdk");
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
+const DEFAULT_USER_HEARTS = 5;
+
+function getUserDocId(openid) {
+  return "user_" + openid;
+}
 
 function normalizeDate(rawValue) {
   if (!rawValue) {
@@ -20,27 +25,65 @@ function normalizeDate(rawValue) {
   return new Date(rawValue);
 }
 
+function normalizeUserHearts(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return DEFAULT_USER_HEARTS;
+  }
+
+  return Math.max(0, numericValue);
+}
+
+function buildCanonicalUserRecord(openid, source) {
+  const user = Object.assign({}, source || {});
+  delete user._id;
+
+  return Object.assign(user, {
+    openid,
+    nickname: user.nickname || "匿名旅人",
+    avatar: user.avatar || "",
+    hearts: normalizeUserHearts(user.hearts),
+    created_at: user.created_at || db.serverDate(),
+    updated_at: db.serverDate()
+  });
+}
+
+async function ensureCanonicalUser(openid) {
+  const userDocId = getUserDocId(openid);
+  const userRef = db.collection("users").doc(userDocId);
+  const userDoc = await userRef.get().catch(() => ({ data: null }));
+
+  if (userDoc && userDoc.data) {
+    return userDoc.data;
+  }
+
+  const legacyUsers = await db.collection("users").where({ openid }).limit(1).get();
+  const legacyUser = legacyUsers.data[0] || null;
+  const userRecord = buildCanonicalUserRecord(openid, legacyUser);
+
+  await userRef.set({
+    data: userRecord
+  });
+
+  return userRecord;
+}
+
 exports.main = async () => {
   try {
     const openid = cloud.getWXContext().OPENID;
+    const user = await ensureCanonicalUser(openid);
 
-    const [userRes, endingsRes, sessionsRes] = await Promise.all([
-      db.collection("users").where({ openid }).limit(1).get(),
+    const [endingsRes, sessionsRes] = await Promise.all([
       db.collection("endings").where({ openid }).get(),
       db.collection("sessions").where({ openid }).orderBy("updated_at", "desc").get()
     ]);
 
-    const user = userRes.data[0] || {
-      openid,
-      nickname: "匿名旅人",
-      avatar: "",
-      hearts: 5
-    };
     const endings = endingsRes.data || [];
     const sessions = sessionsRes.data || [];
 
     const scenarioIds = Array.from(new Set(sessions.map((item) => item.scenario_id).filter(Boolean)));
     let scenarios = [];
+
     if (scenarioIds.length > 0) {
       const _ = db.command;
       const scenarioRes = await db.collection("scenarios").where({ id: _.in(scenarioIds) }).get();
@@ -74,9 +117,7 @@ exports.main = async () => {
         endingId: linkedEnding.ending_id || "",
         endingLabel: linkedEnding.ending_label || linkedEnding.badge_label || linkedEnding.ending_type || "",
         updated_at: updatedAt ? updatedAt.toISOString() : "",
-        created_at: normalizeDate(session.created_at)
-          ? normalizeDate(session.created_at).toISOString()
-          : ""
+        created_at: normalizeDate(session.created_at) ? normalizeDate(session.created_at).toISOString() : ""
       };
     });
 

@@ -7,9 +7,13 @@
     <text class="meta-line detail-meta">{{script.meta}}</text>
   </view>
 
+  <view class="empty-panel" wx:if="{{loadHint}}">
+    {{loadHint}}
+  </view>
+
   <view class="detail-actions">
     <button class="primary-button" bindtap="handleStartChat">开始这段对话</button>
-    <button class="share-btn detail-share" open-type="share" bindtap="handleShareReward">
+    <button class="share-btn detail-share" open-type="share">
       <image class="share-icon" src="/assets/icons/share.png" mode="aspectFit" />
       <text>分享给好友</text>
     </button>

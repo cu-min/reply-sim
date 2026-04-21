@@ -1,12 +1,13 @@
 const { getScriptDetail } = require("../../services/script-service");
 const { createSession } = require("../../services/session-service");
-const { checkHearts, rewardShareHearts } = require("../../services/heart-service");
+const { checkHearts } = require("../../services/heart-service");
 
 Page({
   data: {
     script: null,
     loadState: "loading",
-    errorMessage: ""
+    errorMessage: "",
+    loadHint: ""
   },
 
   async onLoad(query) {
@@ -34,7 +35,8 @@ Page({
         this.setData({
           script: null,
           loadState: "error",
-          errorMessage: "没有找到这个剧本，可能是链接失效或参数不完整。"
+          errorMessage: "没有找到这个剧本，可能是链接失效或参数不完整。",
+          loadHint: ""
         });
         return;
       }
@@ -42,8 +44,16 @@ Page({
       this.setData({
         script,
         loadState: "ready",
-        errorMessage: ""
+        errorMessage: "",
+        loadHint: script.__fallbackSource === "local" ? "当前展示的是本地离线剧本内容，线上数据暂时不可用。" : ""
       });
+
+      if (script.__fallbackSource === "local") {
+        wx.showToast({
+          title: "当前为离线内容",
+          icon: "none"
+        });
+      }
     } catch (error) {
       wx.showToast({
         title: "剧本加载失败",
@@ -52,7 +62,8 @@ Page({
       this.setData({
         script: null,
         loadState: "error",
-        errorMessage: "剧本详情暂时加载失败，请稍后重试。"
+        errorMessage: "剧本详情暂时加载失败，请稍后重试。",
+        loadHint: ""
       });
     } finally {
       wx.hideLoading();
@@ -70,7 +81,7 @@ Page({
       if (!heartResult || !heartResult.canPlay) {
         wx.showModal({
           title: "心动值不足",
-          content: "当前心动值为 0，分享给好友可以获得更多心动值。",
+          content: "当前心动值为 0，暂时无法开始新的对话。",
           confirmText: "知道了",
           showCancel: false
         });
@@ -78,7 +89,7 @@ Page({
       }
     } catch (error) {
       wx.showToast({
-        title: "暂时没法检查心动值",
+        title: "暂时无法检查心动值",
         icon: "none"
       });
       return;
@@ -120,28 +131,5 @@ Page({
       title: "如果这样回——" + (detail.title || "情感对话模拟"),
       query: ""
     };
-  },
-
-  async handleShareReward() {
-    try {
-      const result = await rewardShareHearts("share_friend");
-      if (result && result.rewarded) {
-        wx.showToast({
-          title: "+" + result.rewardAmount + " 心动值",
-          icon: "none",
-          duration: 2000
-        });
-        return;
-      }
-
-      if (result && result.message) {
-        wx.showToast({
-          title: result.message,
-          icon: "none"
-        });
-      }
-    } catch (error) {
-      console.error("[detail] 分享奖励失败:", error);
-    }
   }
 });

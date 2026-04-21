@@ -67,7 +67,7 @@
       <text class="composer-note">{{draftSourceLabel}}</text>
       <textarea
         class="composer"
-        maxlength="-1"
+        maxlength="{{composerMaxLength}}"
         auto-height="true"
         placeholder="也可以自己改一句再发出去"
         value="{{composerText}}"

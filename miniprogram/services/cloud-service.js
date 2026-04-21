@@ -1,26 +1,27 @@
 async function callCloud(name, data) {
-  console.log("[cloud-service] 开始调用:", name, data);
-
   try {
     if (!wx.cloud || !wx.cloud.callFunction) {
       console.error("[cloud-service] wx.cloud 不可用");
-      throw new Error("云开发未初始化");
+      const initError = new Error("云开发未初始化");
+      initError.cloudCode = "CLOUD_NOT_INITIALIZED";
+      throw initError;
     }
-
-    console.log("[cloud-service] wx.cloud 可用，发起请求...");
 
     const res = await wx.cloud.callFunction({
       name,
       data: data || {}
     });
 
-    console.log("[cloud-service] " + name + " 原始返回:", JSON.stringify(res.result ?? null).slice(0, 500));
+    const result = typeof res.result === "undefined" ? null : res.result;
 
-    if (res.result && res.result.code === 0) {
-      return res.result.data;
+    if (result && result.code === 0) {
+      return result.data;
     }
 
-    throw new Error((res.result && res.result.message) || "云函数调用失败");
+    const error = new Error((result && result.message) || "云函数调用失败");
+    error.cloudCode = result && result.error_code ? result.error_code : "";
+    error.cloudData = result && result.data ? result.data : null;
+    throw error;
   } catch (error) {
     console.error("[cloud-service] " + name + " 失败:", error.message || error);
     throw error;
