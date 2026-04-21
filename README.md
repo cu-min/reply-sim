@@ -32,6 +32,8 @@
 │   │   ├── chat-message/         # 聊天消息气泡
 │   │   ├── intent-chip/          # 意图策略按钮
 │   │   └── reply-option/         # 候选回复卡片
+│   ├── config/                   # 运行时配置
+│   │   └── env.js                # 云环境 ID（dev / prod 分离）
 │   ├── mock/                     # 本地 mock 数据（离线兜底）
 │   │   └── scenarios/            # 剧本运行层适配
 │   ├── pages/
@@ -64,10 +66,10 @@
 │   ├── heartManager/             # 心动值管理
 │   ├── chatEngine/               # DeepSeek 对话引擎
 │   ├── importScenarios/          # 剧本数据导入（一次性）
+│   ├── dataAudit/                # 线上数据核查（开发工具）
 │   └── DB_SCHEMA.md              # 数据库集合设计文档
 ├── data/
 │   └── scenarios/                # 标准剧本 JSON（唯一真源）
-├── PROJECT_CHECKLIST.md          # 项目清单
 ├── AUDIT_REPORT.md               # 全量审计报告
 └── README.md                     # 本文件
 ```
@@ -96,8 +98,8 @@
 
 ### 心动值系统
 - 新用户赠送 5 点心动值
-- 每局对话结束时消耗 1 点
-- 分享给好友奖励 1 点，分享朋友圈奖励 2 点（每日上限 3 次）
+- 每局对话开始时消耗 1 点（首轮发送时在服务端扣减）
+- 分享奖励功能暂未开放（待接入可核验凭证后启用）
 
 ---
 
@@ -123,9 +125,10 @@
 | `syncSession` | 同步对话记录到云端 |
 | `saveEnding` | 保存结局数据（按 session_id 去重） |
 | `getUserProfile` | 获取用户统计和历史记录 |
-| `heartManager` | 心动值检查 / 消耗 / 分享奖励 |
-| `chatEngine` | DeepSeek 对话引擎（策略 / 候选 / 回应） |
+| `heartManager` | 心动值查询 |
+| `chatEngine` | DeepSeek 对话引擎（策略 / 候选 / 回应），含首轮心动值扣减 |
 | `importScenarios` | 剧本批量导入（一次性执行） |
+| `dataAudit` | 线上数据核查（开发工具，不对用户开放） |
 
 ---
 
@@ -151,7 +154,7 @@
 ### 运行步骤
 1. 用微信开发者工具打开项目根目录
 2. 确认 `project.config.json` 中的 `appid` 为你的小程序 AppID
-3. 替换 `miniprogram/app.js` 中的云开发环境 ID
+3. 在 `miniprogram/config/env.js` 中填写你的云开发环境 ID（dev / prod 分别配置）
 4. 在云开发控制台创建 4 个集合：`users`、`scenarios`、`sessions`、`endings`
 5. 逐个部署 `cloudfunctions/` 下的所有云函数（右键 → 上传并部署：云端安装依赖）
 6. 在云函数 `chatEngine` 的环境变量中配置 `DEEPSEEK_API_KEY`
@@ -176,6 +179,7 @@
 | Phase 3 | DeepSeek 接入 + Prompt 三段式架构 + 聊天引擎 | ✅ 完成 |
 | Phase 4 | 分享闭环 + 心动值系统 + 体验打磨 + 我的页面改版 | ✅ 完成 |
 | 全量审计 | 安全校验 + 数据一致性 + 异常兜底 + 13 项修复 | ✅ 完成 |
+| Phase 5 | 用户文档统一 ID + 越权防护 + 幂等扣心 + 结局字段补全 + 环境配置分离 | ✅ 完成 |
 
 ---
 
