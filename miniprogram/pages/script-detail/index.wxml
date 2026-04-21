@@ -1,29 +1,97 @@
-<view class="page-shell detail-page" wx:if="{{loadState === 'ready' && script}}">
-  <view class="surface-card detail-character-card">
-    <text class="detail-title serif-title">{{script.title}}</text>
-    <view class="detail-opening-bubble">
-      <text class="detail-opening-text">{{script.openingLine}}</text>
+<!-- 加载完成态 -->
+<view class="detail-page" wx:if="{{loadState === 'ready' && script}}">
+
+  <!-- 自定义导航栏 -->
+  <view class="detail-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="detail-nav__bar">
+      <view class="detail-nav__back" bindtap="handleBack">
+        <text class="detail-nav__back-arrow">‹</text>
+      </view>
+      <view class="detail-nav__title-placeholder"></view>
+      <view class="detail-nav__placeholder"></view>
     </view>
-    <text class="meta-line detail-meta">{{script.meta}}</text>
   </view>
 
-  <view class="empty-panel" wx:if="{{loadHint}}">
-    {{loadHint}}
+  <!-- Hero：角色区（情绪渐变），顶部 padding 撑开导航栏高度 -->
+  <view class="detail-hero" style="background: {{moodBg}}; padding-top: calc({{statusBarHeight}}px + 88rpx + 32rpx)">
+    <text class="detail-hero__emoji">{{emoji}}</text>
+    <view class="detail-hero__category-row">
+      <view class="detail-hero__badge" style="background: rgba(255,255,255,0.35)">
+        <text class="detail-hero__badge-text" style="color: {{moodText}}">{{script.category}}</text>
+      </view>
+      <text class="detail-hero__relation" style="color: {{moodText}}88">{{script.character.relationship}}</text>
+    </view>
+    <text class="detail-hero__name serif-title" style="color: {{moodText}}">{{script.character.name}}</text>
+    <view class="detail-hero__tags">
+      <block wx:for="{{script.tags}}" wx:key="*this">
+        <text class="detail-hero__tag" style="color: {{moodText}}; background: rgba(255,255,255,0.3)">{{item}}</text>
+      </block>
+    </view>
+    <text class="detail-hero__blurb" style="color: {{moodText}}99">{{script.blurb}}</text>
   </view>
 
+  <!-- 内容区 -->
+  <view class="detail-content">
+
+    <!-- 离线提示 -->
+    <view class="hint-bar" wx:if="{{loadHint}}">
+      <text>{{loadHint}}</text>
+    </view>
+
+    <!-- 故事背景 -->
+    <view class="detail-card" wx:if="{{script.background}}">
+      <text class="detail-card__label">故事背景</text>
+      <text class="detail-card__body">{{script.background}}</text>
+    </view>
+
+    <!-- 开场消息 -->
+    <view class="detail-card">
+      <text class="detail-card__label">开场消息</text>
+      <view class="detail-bubble-row">
+        <view class="detail-avatar" style="background: {{moodTagColor}}">
+          <text class="detail-avatar__initial">{{script.character.name[0]}}</text>
+        </view>
+        <view class="detail-bubble-col">
+          <view class="detail-bubble-meta">
+            <text class="detail-bubble-name">{{script.character.name}}</text>
+            <text class="detail-bubble-time">23:42</text>
+          </view>
+          <view class="detail-bubble">
+            <text class="detail-bubble__text">{{script.openingLine}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- 操作区 -->
   <view class="detail-actions">
-    <button class="primary-button" bindtap="handleStartChat">开始这段对话</button>
-    <button class="share-btn detail-share" open-type="share">
-      <image class="share-icon" src="/assets/icons/share.png" mode="aspectFit" />
-      <text>分享给好友</text>
+    <button class="detail-start-btn" bindtap="handleStartChat" style="background: #8B5A5A">开始这段对话</button>
+    <button class="detail-share-btn" open-type="share">
+      <image class="detail-share-icon" src="/assets/icons/share.png" mode="aspectFit" />
+      <text class="detail-share-text">分享给好友</text>
     </button>
   </view>
+
 </view>
 
-<view class="page-shell detail-page" wx:elif="{{loadState === 'error'}}">
-  <view class="surface-card detail-card">
-    <text class="section-title">暂时打不开这个剧本</text>
-    <text class="detail-copy">{{errorMessage}}</text>
-    <button class="ghost-button detail-fallback-button" bindtap="handleBackHome">回到首页</button>
+<!-- 错误态 -->
+<view class="detail-page detail-page--error" wx:elif="{{loadState === 'error'}}">
+  <view class="detail-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="detail-nav__bar">
+      <view class="detail-nav__back" bindtap="handleBackHome">
+        <text class="detail-nav__back-arrow">‹</text>
+      </view>
+      <text class="detail-nav__title serif-title">剧本详情</text>
+      <view class="detail-nav__placeholder"></view>
+    </view>
+  </view>
+  <view class="detail-content">
+    <view class="detail-card">
+      <text class="detail-card__label">暂时打不开这个剧本</text>
+      <text class="detail-card__body">{{errorMessage}}</text>
+      <button class="detail-ghost-btn" bindtap="handleBackHome" style="margin-top: 32rpx">回到首页</button>
+    </view>
   </view>
 </view>

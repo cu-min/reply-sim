@@ -1,5 +1,14 @@
+const CAT_MOOD = {
+  "暗恋": { grad: ["#D4B5A0", "#C49A85"], text: "#6B3A2A", tag: "#C49A85", emoji: "🌙" },
+  "前任": { grad: ["#C4AFCA", "#A99AB8"], text: "#4A2A5A", tag: "#A99AB8", emoji: "✨" },
+  "社交": { grad: ["#D4C4A0", "#C0A97A"], text: "#4A3A1A", tag: "#C0A97A", emoji: "☕" },
+  "职场": { grad: ["#B0BEC5", "#90A4AE"], text: "#2A3A4A", tag: "#90A4AE", emoji: "💼" },
+};
+
 Page({
   data: {
+    statusBarHeight: 0,
+    scrolled: false,
     categories: [],
     selectedCategory: "全部",
     featuredScripts: [],
@@ -9,6 +18,8 @@ Page({
   },
 
   onLoad() {
+    const { statusBarHeight } = wx.getWindowInfo();
+    this.setData({ statusBarHeight });
     this.skipNextOnShow = true;
     this.loadPageData();
   },
@@ -18,8 +29,14 @@ Page({
       this.skipNextOnShow = false;
       return;
     }
-
     this.loadPageData();
+  },
+
+  onPageScroll({ scrollTop }) {
+    const scrolled = scrollTop > 20;
+    if (scrolled !== this.data.scrolled) {
+      this.setData({ scrolled });
+    }
   },
 
   async loadPageData() {
@@ -36,13 +53,27 @@ Page({
       const categories = ["全部"].concat(
         Array.from(new Set(allScripts.map((item) => item.category).filter(Boolean)))
       );
-      const scripts = selectedCategory === "全部"
+      const enrich = (list) => list.map((item) => {
+        const mood = CAT_MOOD[item.category] || CAT_MOOD["暗恋"];
+        return {
+          ...item,
+          moodBg: `linear-gradient(145deg, ${mood.grad[0]}, ${mood.grad[1]})`,
+          moodGrad0: mood.grad[0],
+          moodGrad1: mood.grad[1],
+          moodTagColor: mood.tag,
+          moodText: mood.text,
+          emoji: mood.emoji
+        };
+      });
+
+      const filtered = selectedCategory === "全部"
         ? allScripts
         : allScripts.filter((item) => item.category === selectedCategory);
+      const scripts = enrich(filtered);
 
       this.setData({
         categories,
-        featuredScripts: allScripts.slice(0, 3),
+        featuredScripts: enrich(allScripts.slice(0, 3)),
         scripts,
         isEmpty: scripts.length === 0,
         loadHint: usingLocalFallback ? "当前展示的是本地离线剧本内容，线上数据暂时不可用。" : ""

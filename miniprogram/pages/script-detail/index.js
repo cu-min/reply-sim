@@ -2,15 +2,30 @@ const { getScriptDetail } = require("../../services/script-service");
 const { createSession } = require("../../services/session-service");
 const { checkHearts } = require("../../services/heart-service");
 
+const CAT_MOOD = {
+  "暗恋": { grad: ["#D4B5A0", "#C49A85"], text: "#6B3A2A", tag: "#C49A85", emoji: "🌙" },
+  "前任": { grad: ["#C4AFCA", "#A99AB8"], text: "#4A2A5A", tag: "#A99AB8", emoji: "✨" },
+  "社交": { grad: ["#D4C4A0", "#C0A97A"], text: "#4A3A1A", tag: "#C0A97A", emoji: "☕" },
+  "职场": { grad: ["#B0BEC5", "#90A4AE"], text: "#2A3A4A", tag: "#90A4AE", emoji: "💼" },
+};
+
 Page({
   data: {
     script: null,
     loadState: "loading",
     errorMessage: "",
-    loadHint: ""
+    loadHint: "",
+    statusBarHeight: 0,
+    moodBg: "linear-gradient(145deg, #D4B5A0, #C49A85)",
+    moodTagColor: "#C49A85",
+    moodText: "#6B3A2A",
+    emoji: "🌙"
   },
 
   async onLoad(query) {
+    const { statusBarHeight } = wx.getWindowInfo();
+    this.setData({ statusBarHeight });
+
     const scriptId = query.scriptId;
     if (!scriptId) {
       this.setData({
@@ -41,11 +56,16 @@ Page({
         return;
       }
 
+      const mood = CAT_MOOD[script.category] || CAT_MOOD["暗恋"];
       this.setData({
         script,
         loadState: "ready",
         errorMessage: "",
-        loadHint: script.__fallbackSource === "local" ? "当前展示的是本地离线剧本内容，线上数据暂时不可用。" : ""
+        loadHint: script.__fallbackSource === "local" ? "当前展示的是本地离线剧本内容，线上数据暂时不可用。" : "",
+        moodBg: `linear-gradient(145deg, ${mood.grad[0]}, ${mood.grad[1]})`,
+        moodTagColor: mood.tag,
+        moodText: mood.text,
+        emoji: mood.emoji
       });
 
       if (script.__fallbackSource === "local") {
@@ -109,6 +129,10 @@ Page({
     wx.navigateTo({
       url: "/pages/chat/index?scriptId=" + script.id + (cloudSessionId ? "&cloudSessionId=" + cloudSessionId : "")
     });
+  },
+
+  handleBack() {
+    wx.navigateBack();
   },
 
   handleBackHome() {

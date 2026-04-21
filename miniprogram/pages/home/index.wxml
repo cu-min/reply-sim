@@ -1,85 +1,126 @@
-<view class="page-shell home-page">
-  <view class="surface-card hero-card">
-    <view class="hero-copy-group">
-      <text class="hero-lead serif-title">有些话说出口就后悔，有些话没说出口更后悔。</text>
-      <text class="hero-copy">「如果这样回」是一个模拟真实对话的演练场——前任的深夜问候、暗恋对象的突然搭话、领导的咄咄逼人、客户的无理要求……</text>
-    </view>
-  </view>
+<view class="home-page">
 
-  <view class="section-block">
-    <view class="empty-panel" wx:if="{{loadHint}}">
-      {{loadHint}}
-    </view>
-  </view>
-
-  <view class="section-block">
-    <view class="section-head">
-      <text class="section-title">今晚想聊哪段</text>
-      <text class="section-note">3 段推荐场景</text>
-    </view>
-
-    <scroll-view scroll-x class="featured-scroll">
-      <view class="featured-row">
-        <block wx:for="{{featuredScripts}}" wx:key="id">
-          <view class="surface-card featured-card" data-id="{{item.id}}" bindtap="handleOpenDetail">
-            <view class="opening-bubble opening-bubble--featured">
-              <text class="opening-text">{{item.openingLine}}</text>
-            </view>
-            <text class="featured-copy">{{item.blurb}}</text>
-            <view class="card-bottom-row">
-              <text class="card-tags meta-line">{{item.meta}}</text>
-              <text class="card-unlocked">
-                {{item.unlockedEndingIds.length ? '已解锁 ' + item.unlockedEndingIds.length + ' 个结局' : '尚未解锁结局'}}
-              </text>
-            </view>
-          </view>
-        </block>
-      </view>
-    </scroll-view>
-  </view>
-
-  <view class="section-block">
-    <view class="section-head"></view>
-    <scroll-view scroll-x class="category-scroll">
-      <view class="pill-row category-row">
-        <block wx:for="{{categories}}" wx:key="*this">
-          <view
-            class="pill {{selectedCategory === item ? 'pill--active' : ''}}"
-            data-category="{{item}}"
-            bindtap="handleSelectCategory"
-          >
-            {{item}}
-          </view>
-        </block>
-      </view>
-    </scroll-view>
-  </view>
-
-  <view class="section-block">
-    <view class="section-head">
-      <text class="section-title">全部剧本</text>
-      <text class="section-note">{{scripts.length}} 个可体验场景</text>
-    </view>
-
-    <view class="empty-panel" wx:if="{{isEmpty}}">
-      当前分类下还没有可用剧本，先切回其他分类看看。
-    </view>
-
-    <block wx:if="{{!isEmpty}}">
-      <block wx:for="{{scripts}}" wx:key="id">
-        <view class="surface-card list-card" data-id="{{item.id}}" bindtap="handleOpenDetail">
-          <view class="list-card-bubble">
-            <text class="list-card-opening">{{item.openingLine}}</text>
-          </view>
-          <text class="list-card-copy">{{item.blurb}}</text>
-          <view class="card-bottom-row">
-            <text class="card-tags meta-line">{{item.meta}}</text>
-            <text class="card-unlocked">
-              {{item.unlockedEndingIds.length ? '已解锁 ' + item.unlockedEndingIds.length + ' 个结局' : '尚未解锁结局'}}
-            </text>
-          </view>
+  <!-- 自定义导航栏 -->
+  <view class="home-nav {{scrolled ? 'home-nav--scrolled' : ''}}" style="padding-top: {{statusBarHeight}}px">
+    <view class="home-nav__bar">
+      <view class="home-nav__placeholder"></view>
+      <text class="home-nav__title serif-title">如果这样回</text>
+      <view class="home-nav__right">
+        <view class="home-nav__dots-btn">
+          <view class="home-nav__dot"></view>
+          <view class="home-nav__dot"></view>
+          <view class="home-nav__dot"></view>
         </view>
+        <view class="home-nav__avatar-btn">
+          <image class="home-nav__avatar" src="/assets/tabbar/profile.png" mode="aspectFit" />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 页面内容 -->
+  <view class="home-content">
+
+    <!-- Hero 卡片 -->
+    <view class="hero-card">
+      <text class="hero-quote-deco serif-title">"</text>
+      <text class="hero-eyebrow">有些话——</text>
+      <text class="hero-headline serif-title">说出口就后悔，没说出口更后悔。</text>
+      <text class="hero-desc">模拟真实对话的演练场——前任的深夜问候、暗恋对象的突然话语、领导的咄咄逼人……</text>
+    </view>
+
+    <!-- 离线提示 -->
+    <view class="hint-bar" wx:if="{{loadHint}}">
+      <text>{{loadHint}}</text>
+    </view>
+
+    <!-- 今晚想聊哪段 -->
+    <view class="home-section home-section--featured">
+      <view class="section-head featured-section-head">
+        <text class="section-title serif-title">今晚想聊哪段</text>
+        <text class="section-note">3 段推荐场景</text>
+      </view>
+      <scroll-view scroll-x class="featured-scroll">
+        <view class="featured-row">
+          <block wx:for="{{featuredScripts}}" wx:key="id">
+            <view
+              class="featured-card"
+              style="background: {{item.moodBg}}"
+              data-id="{{item.id}}"
+              bindtap="handleOpenDetail"
+            >
+              <text class="featured-emoji">{{item.emoji}}</text>
+              <view class="featured-top">
+                <text class="featured-cat-label">{{item.category}} · {{item.tags[2] || item.tags[1] || item.tags[0]}}</text>
+                <text class="featured-scene-desc" style="color: {{item.moodText}}">{{item.blurb}}</text>
+              </view>
+              <view class="featured-bubble">
+                <text class="featured-bubble-text">{{item.openingLine}}</text>
+              </view>
+              <view class="featured-footer">
+                <text class="featured-tags-text">{{item.tags[0]}} | {{item.tags[1]}}</text>
+                <view wx:if="{{item.unlockedEndingIds.length === 0}}" class="featured-lock-badge">尚未解锁结局</view>
+                <text wx:else class="featured-unlocked-text" style="color: {{item.moodText}}">已解锁 {{item.unlockedEndingIds.length}} 个 ●</text>
+              </view>
+            </view>
+          </block>
+          <view class="featured-row-end"></view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 分类筛选 -->
+    <view class="home-section">
+      <scroll-view scroll-x class="category-tabs-wrap">
+        <view class="category-tabs-row">
+          <block wx:for="{{categories}}" wx:key="*this">
+            <view
+              class="cat-tab {{selectedCategory === item ? 'cat-tab--active' : ''}}"
+              data-category="{{item}}"
+              bindtap="handleSelectCategory"
+            >{{item}}</view>
+          </block>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 剧本列表 -->
+    <view class="home-section">
+      <view class="section-head">
+        <text class="section-title serif-title">{{selectedCategory + '场景'}}</text>
+        <text class="section-note">{{scripts.length}} 个可体验场景</text>
+      </view>
+
+      <view class="empty-panel" wx:if="{{isEmpty}}">
+        当前分类下还没有可用剧本，先切回其他分类看看。
+      </view>
+
+      <block wx:if="{{!isEmpty}}">
+        <block wx:for="{{scripts}}" wx:key="id">
+          <view class="list-card" data-id="{{item.id}}" bindtap="handleOpenDetail">
+            <view class="list-card__stripe" style="background: linear-gradient(to bottom, {{item.moodGrad0}}, {{item.moodGrad1}})"></view>
+            <view class="list-card__body">
+              <view class="list-card__header">
+                <text class="list-card__opening">{{item.openingLine}}</text>
+                <view class="list-card__badge" style="background: {{item.moodTagColor}}">
+                  <text class="list-card__badge-text">{{item.category}}</text>
+                </view>
+              </view>
+              <text class="list-card__blurb">{{item.blurb}}</text>
+              <view class="list-card__footer">
+                <view class="list-card__tags">
+                  <block wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">
+                    <text class="list-card__tag">{{tag}}</text>
+                  </block>
+                </view>
+                <text wx:if="{{item.unlockedEndingIds.length === 0}}" class="list-card__lock">尚未解锁结局</text>
+                <text wx:else class="list-card__unlocked">已解锁 {{item.unlockedEndingIds.length}} 个</text>
+              </view>
+            </view>
+          </view>
+        </block>
       </block>
-    </block>
+    </view>
+
   </view>
 </view>
