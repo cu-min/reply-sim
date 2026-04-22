@@ -1,0 +1,376 @@
+module.exports = {
+  "id": "family-regret-father",
+  "title": "\"我其实一直在后悔\"",
+  "category": "家庭冲突",
+  "cover": {
+    "opening_message": "听说你现在想重新考研？",
+    "subtitle": "父亲的\"我早就说过\"与你的自责交织在一起。",
+    "tags": [
+      "家庭冲突",
+      "后悔",
+      "自责",
+      "被判断"
+    ]
+  },
+  "character": {
+    "name": "李爸",
+    "gender": "男",
+    "age": 55,
+    "occupation": "工程师",
+    "relationship": "父亲",
+    "archetype": "理性冷漠型",
+    "personality": "理性但冷漠，用成就来衡量人生价值。习惯性地说\"我早就说过\"，一旦定性就很难改口。",
+    "speaking_style": "简短、直白、缺少同理心。更多是指责而非关心。给予判断而不是倾听。",
+    "attitude_to_relationship": "认为自己的经验就是标准答案，对孩子的选择评判多于支持。",
+    "initial_mood": "讽刺+失望，带着\"看吧我就知道\"的姿态。",
+    "initial_favorability": 40,
+    "current_attitude": "觉得你这些年浪费了，现在想补救已经晚了。"
+  },
+  "background": "五年前，你本科毕业时选择直接工作而不是考研。父亲当时就说过应该读研，但你没听。现在工作第2-3年，你在职场上遇到瓶颈，同龄人很多已经有研究生学历或在大企业，你开始后悔当初没听他的话。今天他听说你想重新参加考研，打来电话。",
+  "scene_prompt": "这一次，你既要面对真实的后悔，也要不被这种后悔变成完全的自我否定。父亲的冷漠评判会让你更加自责，你需要找到方式，既认可自己的成长，又诚实面对曾经的选择。关键是，你的后悔不是因为他说对了，而是因为你对自己的反思。",
+  "ending_triggers": {
+    "description": "满足以下任意条件时，对话可进入结局阶段。",
+    "conditions": [
+      "用户在后悔与自我认可之间找到了平衡",
+      "父亲的态度发生了显著变化，或用户选择了独立继续",
+      "对话陷入自责的循环且无法突破",
+      "轮数达到上限（第8轮）"
+    ]
+  },
+  "possible_endings": [
+    {
+      "id": "ending-family-redemption",
+      "type": "warmth",
+      "label": "自我救赎",
+      "hint": "你决定去做，不是为了证明给爸爸，而是为了自己。",
+      "impact_line": "你终于明白，弥补过去的最好方式，不是听爸爸说\"我早就知道\"，而是自己去完成那个被遗漏的梦。",
+      "relationship_result": "你不再依赖父亲的认可，而是用自己的行动去证明选择的意义。这种独立，也许会让父亲改变对你的看法。",
+      "key_behavior_feedback": "你既承认了曾经的不足，也拒绝了完全的自我否定。你在为自己而活。",
+      "missed_branch_hint": "如果你能在这个过程中邀请爸爸陪伴，而不只是证明，关系会更温暖。",
+      "literary_closing": "有些弥补，不是回到过去，而是用现在去赎回过去的遗憾。",
+      "badge_label": "自我救赎"
+    },
+    {
+      "id": "ending-family-reconcile",
+      "type": "warmth",
+      "label": "可能的和解",
+      "hint": "父亲第一次沉默了，也许他开始反思。",
+      "impact_line": "\"也... 也许我那时候说得太绝对了。\" 他的声音变得很低，甚至有点尴尬。",
+      "relationship_result": "父亲意识到自己的评判可能伤害了你。这不是完全的理解，但至少是第一次的认可差池。",
+      "key_behavior_feedback": "你既诚实地承认了后悔，也清楚地表达了自己的想法。这打破了他单方面评判的习惯。",
+      "missed_branch_hint": "如果你能在这个时候温暖地接纳他的改变，而不是继续指责，你们会真正靠近。",
+      "literary_closing": "有时候，和解来自于双方都愿意承认，彼此都曾经错过了对方。",
+      "badge_label": "可能的和解"
+    },
+    {
+      "id": "ending-family-permanent-regret",
+      "type": "closure",
+      "label": "永远的遗憾",
+      "hint": "你的后悔变成了永远的遗憾，而他的评判成了永远的刀。",
+      "impact_line": "\"你看，我就知道。\" 他的话就像一把刀，切开了你所有的努力和反思。",
+      "relationship_result": "你陷入了后悔与反抗之间的无底洞。每当你想承认错误时，他都在说\"我早就说过\"，这让你不得不继续否认自己。",
+      "key_behavior_feedback": "你在父亲的评判和自己的自责之间迷失了。你无法找到平衡，也无法真正地自我救赎。",
+      "missed_branch_hint": "如果你能在某个时刻切断对父亲认可的渴望，转而关注自己的想法，就能打破这个循环。",
+      "literary_closing": "有些关系就像一个死结，双方都在用对方来惩罚自己。",
+      "badge_label": "永远的遗憾"
+    },
+    {
+      "id": "ending-family-independence",
+      "type": "ambiguous",
+      "label": "独立的沉默",
+      "hint": "你不再需要他的认可了。你会做你的决定，不管他怎么说。",
+      "impact_line": "他还在说\"看吧我就知道\"，可你已经不再听了。你在用沉默告诉他：这是我的人生，我自己负责。",
+      "relationship_result": "你和父亲的关系进入了一个新的阶段——不冷战，但也不亲密。你们各自有各自的想法，彼此不再试图改变对方。",
+      "key_behavior_feedback": "你学会了在不被理解的情况下还能坚持自己。这是一种成长，虽然有点孤独。",
+      "missed_branch_hint": "如果你能偶尔告诉他你的进展，他也许会慢慢改变。但你也完全可以选择不告诉他。",
+      "literary_closing": "独立有时候不是欢呼，而是一个人静静地走自己的路。",
+      "badge_label": "独立的沉默"
+    }
+  ],
+  "turns": [
+    {
+      "id": "family-regret-turn-1",
+      "assistant_message": "听说你现在想重新考研？现在才想？我五年前就跟你说过啊。你非得不听。现在年纪大了，复习起来会比别人吃力的多。为什么当初不好好听劝呢？",
+      "emotion_hint": "讽刺、失望、\"看吧我就知道\"",
+      "strategies": [
+        {
+          "id": "family-regret-turn1-intent-1",
+          "label": "诚实地承认后悔，但不自我贬低",
+          "description": "你不是在替他辩解\"你说对了\"，而是在说\"我后悔了，但这是我的成长\"。",
+          "replies": [
+            {
+              "id": "family-regret-turn1-reply-1a",
+              "style_label": "承认但保留尊严",
+              "style_description": "说出后悔，但不让他有机会踩你。",
+              "content": "是，我现在很后悔。但爸，这不意味着你当时对，我当时错。我只是...在成长中改变了想法。"
+            },
+            {
+              "id": "family-regret-turn1-reply-1b",
+              "style_label": "反思而非认罪",
+              "style_description": "解释你的后悔来自哪里。",
+              "content": "我知道你当时是对的。但我也需要通过自己的经历去明白这一点。现在我明白了，所以我想去改变。"
+            }
+          ]
+        },
+        {
+          "id": "family-regret-turn1-intent-2",
+          "label": "防守与反驳",
+          "description": "你不想给他\"我就知道\"的快感。表达你对他这种态度的不满。",
+          "replies": [
+            {
+              "id": "family-regret-turn1-reply-1c",
+              "style_label": "质疑他的动机",
+              "style_description": "问出真实想法。",
+              "content": "爸，你现在最在意的是什么？是我后来的人生，还是你能说\"我早就说过\"？"
+            },
+            {
+              "id": "family-regret-turn1-reply-1d",
+              "style_label": "表达被伤害",
+              "style_description": "说出他这种态度对你的影响。",
+              "content": "每次我想承认错误的时候，你都在用\"我早就说过\"来嘲笑我。你知道这会让我更不愿意听你的吗？"
+            }
+          ]
+        },
+        {
+          "id": "family-regret-turn1-intent-3",
+          "label": "转向行动，而不是辩论",
+          "description": "不再和他争论过去，直接说你的计划。",
+          "replies": [
+            {
+              "id": "family-regret-turn1-reply-1e",
+              "style_label": "明确的计划",
+              "style_description": "告诉他你已经想清楚了。",
+              "content": "我已经想好了。明年我就开始复习。不是因为你说过，而是因为这是我自己的决定。"
+            },
+            {
+              "id": "family-regret-turn1-reply-1f",
+              "style_label": "独立的宣言",
+              "style_description": "说出你会自己承担后果。",
+              "content": "我会试试。如果失败了，我也能承受。这是我的选择，我会对自己负责。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "family-regret-turn-2",
+      "assistant_message": "现在说这些有什么用？你就是性格浮躁，从小就这样。有了想法就要立马做，从来不想后果。现在想补救也晚了。你这种心态，考上也是白考。",
+      "emotion_hint": "更加讽刺，把你的后悔变成了性格缺陷的定性",
+      "strategies": [
+        {
+          "id": "family-regret-turn2-intent-1",
+          "label": "不接受定性，但保持冷静",
+          "description": "他在定性你\"性格浮躁\"。这是关键时刻，你要拒绝这个标签。",
+          "replies": [
+            {
+              "id": "family-regret-turn2-reply-2a",
+              "style_label": "拒绝标签",
+              "style_description": "清晰地说不。",
+              "content": "我不同意你这个说法。我不是浮躁，我是在学会改变主意。人生中改变想法，是成长，不是缺点。"
+            },
+            {
+              "id": "family-regret-turn2-reply-2b",
+              "style_label": "温和但坚定",
+              "style_description": "承认他的观点，但也表达自己。",
+              "content": "也许你看到的是浮躁，但我看到的是我在变。这种变，我希望你能看到，而不只是评判。"
+            }
+          ]
+        },
+        {
+          "id": "family-regret-turn2-intent-2",
+          "label": "说出被评判造成的伤害",
+          "description": "让他听到，这些年来他的评判对你的影响有多深。",
+          "replies": [
+            {
+              "id": "family-regret-turn2-reply-2c",
+              "style_label": "深刻的控诉",
+              "style_description": "这一次，你说出压抑的东西。",
+              "content": "你知道这五年我是怎么过的吗？每个选择都在害怕你会说\"看吧我就知道\"。我甚至不敢承认自己的后悔，因为承认就等于让你赢了。"
+            },
+            {
+              "id": "family-regret-turn2-reply-2d",
+              "style_label": "戳中问题的根本",
+              "style_description": "说出真话。",
+              "content": "你的\"我早就说过\"每一次都像一把刀。它让我不敢听你的建议，也让我拒绝承认自己的错。你想帮我，反而把我推得更远了。"
+            }
+          ]
+        },
+        {
+          "id": "family-regret-turn2-intent-3",
+          "label": "拒绝他的定性，用行动说话",
+          "description": "不再和他争论，而是说：我会用事实来回答你。",
+          "replies": [
+            {
+              "id": "family-regret-turn2-reply-2e",
+              "style_label": "坚定的决心",
+              "style_description": "告诉他你已经没有退路了。",
+              "content": "晚不晚，我自己看着办。我会拼，不管心态如何。最后我是成了还是失败了，你就等着看吧。"
+            },
+            {
+              "id": "family-regret-turn2-reply-2f",
+              "style_label": "为自己而做",
+              "style_description": "强调这是为了自己，不是为了他。",
+              "content": "我不是为了证明你错了。我是为了让自己不那么后悔。这和你的\"我早就说过\"没有关系。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "family-regret-turn-3",
+      "assistant_message": "好啊，那就试试吧。反正我也劝不了你。不过我得跟你说实话，我见过太多这样的例子，最后都是在浪费时间。你工作也耽误了，复习也考不上。吃力不讨好。",
+      "emotion_hint": "从评判转向\"好心的劝阻\"，但其实还是在打击",
+      "strategies": [
+        {
+          "id": "family-regret-turn3-intent-1",
+          "label": "听他说，但不被击倒",
+          "description": "他在说风凉话。你要能听进去有道理的部分，但也要知道哪些是在打击你。",
+          "replies": [
+            {
+              "id": "family-regret-turn3-reply-3a",
+              "style_label": "理性分析",
+              "style_description": "冷静地对待他的\"劝告\"。",
+              "content": "你说的风险我都知道。但我也知道，不试就一定不行。有风险总比无所作为要好。"
+            },
+            {
+              "id": "family-regret-turn3-reply-3b",
+              "style_label": "温和但清晰",
+              "style_description": "感谢他的关心，但拒绝他的评判。",
+              "content": "谢谢你的经验。但我需要自己去试。不是听不进去你的话，而是我必须用自己的方式去印证。"
+            }
+          ]
+        },
+        {
+          "id": "family-regret-turn3-intent-2",
+          "label": "说出自己的挣扎",
+          "description": "不再只防守，而是让他看到你的脆弱。",
+          "replies": [
+            {
+              "id": "family-regret-turn3-reply-3c",
+              "style_label": "坦白真实",
+              "style_description": "说出内心的不确定。",
+              "content": "老实说，我也害怕。害怕失败，害怕你会在我失败后说\"我就知道\"。但我更害怕，一生都在后悔。"
+            },
+            {
+              "id": "family-regret-turn3-reply-3d",
+              "style_label": "真实的呼救",
+              "style_description": "表达你需要的不是评判，是支持。",
+              "content": "我知道你对我失望。但现在最需要的是，能不能有人相信我还可以改变？哪怕只是你不要再说我不行。"
+            }
+          ]
+        },
+        {
+          "id": "family-regret-turn3-intent-3",
+          "label": "彻底独立，不再寻求认可",
+          "description": "你决定了，无论他怎么说，你都会去做。",
+          "replies": [
+            {
+              "id": "family-regret-turn3-reply-3e",
+              "style_label": "最后的决断",
+              "style_description": "告诉他这次不同了。",
+              "content": "我已经决定了。不管成不成，我都会试。你支持最好，不支持我也会去。这一次，我不再需要你的同意。"
+            },
+            {
+              "id": "family-regret-turn3-reply-3f",
+              "style_label": "沉默的决心",
+              "style_description": "只是平静地听，然后说一句话就够了。",
+              "content": "好的，我听到了。但我还是要做这个决定。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "family-regret-turn-4",
+      "assistant_message": "随便你吧。我是过来人，我知道结局会怎样。反正以后别后悔就行。你妈还在等我去吃饭，我挂了。",
+      "emotion_hint": "彻底放手，但态度仍然冷漠",
+      "ending_id": "ending-family-independence",
+      "ending_prompt": "他要放弃了。你要在这一刻试图挽留，还是接纳这个结局？",
+      "strategies": [
+        {
+          "id": "family-regret-turn4-intent-1",
+          "label": "最后一次靠近",
+          "description": "在他挂电话前，说一句能打动他的话。",
+          "replies": [
+            {
+              "id": "family-regret-turn4-reply-4a",
+              "style_label": "脆弱的邀请",
+              "style_description": "让他看到你需要他。",
+              "content": "爸，不管怎样，我还是希望你能看到我的努力。不是为了证明你错了，只是... 希望你能陪我。"
+            },
+            {
+              "id": "family-regret-turn4-reply-4b",
+              "style_label": "诚恳的承诺",
+              "style_description": "给他一个理由继续关心。",
+              "content": "我会好好试的。如果有结果了，我会告诉你。也许到时候你会看到，我不是在浪费时间。"
+            }
+          ]
+        },
+        {
+          "id": "family-regret-turn4-intent-2",
+          "label": "接纳他的放手，然后放手自己",
+          "description": "他不相信你，那就算了。你去做你的，不需要他的同意。",
+          "replies": [
+            {
+              "id": "family-regret-turn4-reply-4c",
+              "style_label": "平静的接纳",
+              "style_description": "不纠缠，不乞求。",
+              "content": "好的。我理解。你去吃饭吧。不用担心我。"
+            },
+            {
+              "id": "family-regret-turn4-reply-4d",
+              "style_label": "决然的转身",
+              "style_description": "用沉默回应沉默。",
+              "content": "嗯。拜。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "family-regret-turn-5",
+      "assistant_message": "（沉默了几秒）... 算了，照顾好自己。你妈关心你。有什么事的话，就打电话回家。",
+      "emotion_hint": "最后一刻的转变，或许是真的关心浮现",
+      "strategies": [
+        {
+          "id": "family-regret-turn5-intent-1",
+          "label": "接住这个转变",
+          "description": "父亲最后说了\"照顾好自己\"和\"有什么事就打电话\"。这是他能给的最大的爱。接住它。",
+          "replies": [
+            {
+              "id": "family-regret-turn5-reply-5a",
+              "style_label": "温暖的回应",
+              "style_description": "让他知道你听到了。",
+              "content": "好。我会的。爸，谢谢你。"
+            },
+            {
+              "id": "family-regret-turn5-reply-5b",
+              "style_label": "承诺与靠近",
+              "style_description": "给他一个继续关系的理由。",
+              "content": "放心。我会照顾好自己。也会常给你打电话。爸。"
+            }
+          ]
+        },
+        {
+          "id": "family-regret-turn5-intent-2",
+          "label": "用行动来回应",
+          "description": "不只是说，而是用后续的行动来证明。",
+          "replies": [
+            {
+              "id": "family-regret-turn5-reply-5c",
+              "style_label": "期许的话",
+              "style_description": "给他看到希望。",
+              "content": "下次我有进展了，会第一时间告诉你。可能会让你看到不一样的我。"
+            },
+            {
+              "id": "family-regret-turn5-reply-5d",
+              "style_label": "简短有力",
+              "style_description": "一句话就够了。",
+              "content": "我会的。拜。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};

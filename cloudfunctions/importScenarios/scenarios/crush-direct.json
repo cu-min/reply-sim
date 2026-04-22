@@ -1,4 +1,4 @@
-module.exports = {
+{
   "id": "crush-direct",
   "title": "“你是不是有话想跟我说？”",
   "category": "暗恋",
@@ -270,4 +270,4 @@ module.exports = {
       ]
     }
   ]
-};
+}

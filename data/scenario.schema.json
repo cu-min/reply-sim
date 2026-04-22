@@ -1,69 +1,322 @@
 {
-  "id": "scenario_example",
-  "title": "示例标题",
-  "category": "前任",
-  "cover": {
-    "opening_message": "睡了吗？",
-    "subtitle": "他很久没联系你了",
-    "tags": ["前任", "分手3个月", "试探型"]
-  },
-  "character": {
-    "name": "祁川",
-    "gender": "male",
-    "age": 27,
-    "occupation": "品牌策划",
-    "relationship": "前任",
-    "archetype": "克制试探型",
-    "personality": "表面随和但内心敏感，习惯用轻描淡写掩饰在意。",
-    "speaking_style": "句子短，喜欢先探你的态度，再决定说多少。",
-    "attitude_to_relationship": "嘴上说放下了，实际上还在试探对方是否在意自己。",
-    "initial_mood": "有点紧张，但故意表现得很随意。",
-    "initial_favorability": 45
-  },
-  "background": "你们已经分开三个月，彼此没有彻底拉黑，也没有真正说清楚。",
-  "scene_prompt": "你可以稳住局面，也可以把情绪留白，不必着急给关系下定义。",
-  "ending_triggers": {
-    "description": "以下条件满足任意一个时，对话可进入结局阶段。",
-    "conditions": [
-      "双方明确表达了对关系的态度",
-      "出现明显情绪转折且已经形成结果",
-      "对话自然走向告别",
-      "对话轮数达到上限且话题开始循环"
-    ]
-  },
-  "possible_endings": [
-    {
-      "id": "ending_example",
-      "type": "warmth",
-      "label": "重新在意",
-      "impact_line": "你没有回头，但他重新把目光停在了你身上。",
-      "relationship_result": "你让他重新开始在意你。",
-      "key_behavior_feedback": "你没有急着靠近，反而让他愿意把话再多留一会儿。",
-      "missed_branch_hint": "如果第二轮你更主动一点，可能会触发更直接的回流。",
-      "literary_closing": "你把分寸留在字句之间，于是旧情绪也悄悄亮了一下。",
-      "badge_label": "重新在意"
-    }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://if-so-reply.local/schema/scenario.schema.json",
+  "title": "Scenario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "category",
+    "cover",
+    "character",
+    "background",
+    "scene_prompt",
+    "ending_triggers",
+    "possible_endings",
+    "turns"
   ],
-  "turns": [
-    {
-      "id": "turn_1",
-      "assistant_message": "睡了吗？",
-      "emotion_hint": "",
-      "strategies": [
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cover": {
+      "$ref": "#/$defs/cover"
+    },
+    "character": {
+      "$ref": "#/$defs/character"
+    },
+    "background": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scene_prompt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ending_triggers": {
+      "$ref": "#/$defs/endingTriggers"
+    },
+    "possible_endings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/possibleEnding"
+      }
+    },
+    "turns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/turn"
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cover": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "opening_message",
+        "subtitle",
+        "tags"
+      ],
+      "properties": {
+        "opening_message": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "subtitle": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "tags": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "character": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "gender",
+        "age",
+        "occupation",
+        "relationship",
+        "archetype",
+        "personality",
+        "speaking_style",
+        "attitude_to_relationship",
+        "initial_mood",
+        "initial_favorability",
+        "current_attitude"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "gender": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "age": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "occupation": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "relationship": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "archetype": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "personality": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "speaking_style": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "attitude_to_relationship": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "initial_mood": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "initial_favorability": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "current_attitude": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "endingTriggers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "conditions"
+      ],
+      "properties": {
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "possibleEnding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "label",
+        "hint",
+        "impact_line",
+        "relationship_result",
+        "key_behavior_feedback",
+        "missed_branch_hint",
+        "literary_closing",
+        "badge_label"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "hint": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "impact_line": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "relationship_result": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "key_behavior_feedback": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "missed_branch_hint": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "literary_closing": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "badge_label": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "reply": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "style_label",
+        "style_description",
+        "content"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "style_label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "style_description": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "content": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "description",
+        "replies"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "replies": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/reply"
+          }
+        }
+      }
+    },
+    "turn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "assistant_message",
+        "emotion_hint",
+        "strategies"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "assistant_message": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "emotion_hint": {
+          "type": "string"
+        },
+        "ending_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "ending_prompt": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "strategies": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/strategy"
+          }
+        }
+      },
+      "allOf": [
         {
-          "id": "intent_1",
-          "label": "先稳住",
-          "description": "别显得你一直在等他的消息。",
-          "replies": [
-            {
-              "id": "reply_1",
-              "style_label": "平静自然",
-              "style_description": "平静自然，留有余地。",
-              "content": "还没，正准备睡。怎么突然想到找我？"
-            }
-          ]
+          "if": {
+            "required": [
+              "ending_prompt"
+            ]
+          },
+          "then": {
+            "required": [
+              "ending_id"
+            ]
+          }
         }
       ]
     }
-  ]
+  }
 }

@@ -1,4 +1,4 @@
-module.exports = {
+{
   "id": "ex-photo",
   "title": "他发来了一张照片",
   "category": "前任",
@@ -270,4 +270,4 @@ module.exports = {
       ]
     }
   ]
-};
+}

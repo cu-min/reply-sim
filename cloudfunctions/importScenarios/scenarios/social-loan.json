@@ -1,4 +1,4 @@
-module.exports = {
+{
   "id": "social-loan",
   "title": "朋友借钱不还，你要不要开口",
   "category": "社交",
@@ -270,4 +270,4 @@ module.exports = {
       ]
     }
   ]
-};
+}

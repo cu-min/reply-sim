@@ -1,4 +1,4 @@
-module.exports = {
+{
   "id": "crush-party",
   "title": "朋友聚会后他单独找你说话",
   "category": "暗恋",
@@ -270,4 +270,4 @@ module.exports = {
       ]
     }
   ]
-};
+}

@@ -1,4 +1,4 @@
-module.exports = {
+{
   "id": "work-tonight",
   "title": "“这个方案今晚改出来。”",
   "category": "职场",
@@ -270,4 +270,4 @@ module.exports = {
       ]
     }
   ]
-};
+}

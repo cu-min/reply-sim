@@ -1,17 +1,21 @@
-const exMidnight = require("./scenarios/ex-midnight");
-const exPhoto = require("./scenarios/ex-photo");
 const crushDirect = require("./scenarios/crush-direct");
 const crushParty = require("./scenarios/crush-party");
-const workTonight = require("./scenarios/work-tonight");
+const exMidnight = require("./scenarios/ex-midnight");
+const exPhoto = require("./scenarios/ex-photo");
+const familyRegretFather = require("./scenarios/family-regret-father");
+const familyResistanceStudy = require("./scenarios/family-resistance-study");
 const socialLoan = require("./scenarios/social-loan");
+const workTonight = require("./scenarios/work-tonight");
 
 const scenarioLibrary = [
-  exMidnight,
-  exPhoto,
   crushDirect,
   crushParty,
-  workTonight,
-  socialLoan
+  exMidnight,
+  exPhoto,
+  familyRegretFather,
+  familyResistanceStudy,
+  socialLoan,
+  workTonight
 ];
 
 const profileSeed = {

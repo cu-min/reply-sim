@@ -1,4 +1,4 @@
-module.exports = {
+{
   "id": "ex-midnight",
   "title": "深夜的那一句话",
   "category": "前任",
@@ -270,4 +270,4 @@ module.exports = {
       ]
     }
   ]
-};
+}

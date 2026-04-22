@@ -34,7 +34,7 @@
 │   │   └── reply-option/         # 候选回复卡片
 │   ├── config/                   # 运行时配置
 │   │   └── env.js                # 云环境 ID（dev / prod 分离）
-│   ├── mock/                     # 本地 mock 数据（离线兜底）
+│   ├── mock/                     # 本地 mock 数据（脚本生成的开发兜底）
 │   │   └── scenarios/            # 剧本运行层适配
 │   ├── pages/
 │   │   ├── home/                 # 首页（剧本浏览）
@@ -65,7 +65,7 @@
 │   ├── getUserProfile/           # 获取用户统计
 │   ├── heartManager/             # 心动值管理
 │   ├── chatEngine/               # DeepSeek 对话引擎
-│   ├── importScenarios/          # 剧本数据导入（一次性）
+│   ├── importScenarios/          # 剧本数据同步（读取部署快照）
 │   ├── dataAudit/                # 线上数据核查（开发工具）
 │   └── DB_SCHEMA.md              # 数据库集合设计文档
 ├── data/
@@ -127,7 +127,7 @@
 | `getUserProfile` | 获取用户统计和历史记录 |
 | `heartManager` | 心动值查询 |
 | `chatEngine` | DeepSeek 对话引擎（策略 / 候选 / 回应），含首轮心动值扣减 |
-| `importScenarios` | 剧本批量导入（一次性执行） |
+| `importScenarios` | 按剧本真源快照同步到 `scenarios` 集合 |
 | `dataAudit` | 线上数据核查（开发工具，不对用户开放） |
 
 ---
@@ -155,11 +155,45 @@
 1. 用微信开发者工具打开项目根目录
 2. 确认 `project.config.json` 中的 `appid` 为你的小程序 AppID
 3. 在 `miniprogram/config/env.js` 中填写你的云开发环境 ID（dev / prod 分别配置）
-4. 在云开发控制台创建 4 个集合：`users`、`scenarios`、`sessions`、`endings`
+4. 在云开发控制台创建 6 个集合：`users`、`scenarios`、`sessions`、`endings`、`requests`、`feedbacks`
 5. 逐个部署 `cloudfunctions/` 下的所有云函数（右键 → 上传并部署：云端安装依赖）
 6. 在云函数 `chatEngine` 的环境变量中配置 `DEEPSEEK_API_KEY`
-7. 执行一次 `importScenarios` 云函数导入剧本数据
-8. 编译运行
+7. 修改剧本时只编辑 `data/scenarios/*.json`
+8. 本地执行 `npm run scenarios:validate`
+9. 本地执行 `npm run scenarios:prepare-import`
+10. 如需刷新开发兜底 mock，执行 `npm run scenarios:generate-mock`
+11. 重新部署 `cloudfunctions/importScenarios`
+12. 执行一次 `importScenarios` 云函数，将部署快照同步到数据库
+13. 编译运行
+
+### 更新剧本流程（命令行）
+
+只修改 `data/scenarios/*.json`，然后按下面顺序执行：
+
+```bash
+npm run scenarios:validate
+npm run scenarios:prepare-import
+```
+
+如果还需要刷新本地开发兜底 mock，再执行：
+
+```bash
+npm run scenarios:generate-mock
+```
+
+然后：
+
+1. 在微信开发者工具里重新部署 `cloudfunctions/importScenarios`
+2. 手动执行一次 `importScenarios` 云函数
+
+返回结果说明：
+
+- `imported`：新增剧本数量
+- `updated`：更新剧本数量
+- `unchanged`：未变化剧本数量
+- `failed`：失败数量
+
+如果重复导入同一批未改动剧本，返回 `unchanged` 是正常的，不会重复新增。
 
 ### 提交规范
 使用 [Conventional Commits](https://www.conventionalcommits.org/)：
@@ -185,6 +219,8 @@
 
 ## 已知待处理
 
-- `importScenarios` 云函数中内联了一份剧本数据，和 `/data/scenarios/*.json` 存在双份数据源，后续新增剧本时需统一
+- 剧本真源固定为 `data/scenarios/*.json`，不要再手工修改 `miniprogram/mock/scenarios/*.js` 或 `importScenarios/index.js` 中的剧本正文
+- `cloudfunctions/importScenarios/scenarios/` 是部署快照目录，由 `npm run scenarios:prepare-import` 生成，不直接手工维护
+- `miniprogram/mock/scenarios/*.js` 由 `npm run scenarios:generate-mock` 自动生成，作为开发兜底
 - tabbar 和分享图标目前为占位资源，需按 `assets/tabbar/ICON_SPEC.md` 规格替换正式图标
 - DeepSeek API Key 需通过云函数环境变量配置，不要硬编码到代码中

@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "scenarios:generate-mock": "node scripts/generate-mock-scenarios.js",
+    "scenarios:prepare-import": "node scripts/prepare-import-scenarios.js",
+    "scenarios:sync": "npm run scenarios:validate && npm run scenarios:prepare-import",
+    "scenarios:validate": "node scripts/validate-scenarios.js",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
