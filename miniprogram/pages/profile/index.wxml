@@ -1,89 +1,275 @@
-<view class="page-shell profile-page">
-  <view class="profile-card surface-card">
-    <view class="profile-header">
-      <image class="profile-avatar" src="{{avatar || '/assets/icons/default-avatar.png'}}" mode="aspectFill" />
-      <view class="profile-center">
-        <text class="profile-nickname">{{nickname || '匿名旅人'}}</text>
-        <text class="profile-bio">{{bio || '有些话，先在这里试着说。'}}</text>
-      </view>
-      <view class="profile-hearts">
-        <image
-          class="hearts-icon-image"
-          src="{{hearts > 0 ? '/assets/icons/like.png' : '/assets/icons/dislike.png'}}"
-          mode="aspectFit"
-        />
-        <text class="hearts-number">{{hearts}}</text>
-      </view>
-    </view>
+<view class="profile-page">
 
-    <view class="profile-stats">
-      <view class="stat-item">
-        <text class="stat-number">{{scenarioCount || 0}}</text>
-        <text class="stat-label">已体验剧本</text>
-      </view>
-      <view class="stat-divider"></view>
-      <view class="stat-item">
-        <text class="stat-number">{{endingCount || 0}}</text>
-        <text class="stat-label">解锁结局</text>
-      </view>
-      <view class="stat-divider"></view>
-      <view class="stat-item">
-        <text class="stat-number">{{totalRounds || 0}}</text>
-        <text class="stat-label">累计对话轮数</text>
+  <!-- 自定义导航栏 -->
+  <view class="profile-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="profile-nav__bar">
+      <view class="profile-nav__placeholder"></view>
+      <text class="profile-nav__title serif-title">我的</text>
+      <view class="profile-nav__action" bindtap="handleSettings">
+        <text class="profile-nav__action-icon">⚙</text>
       </view>
     </view>
   </view>
 
-  <view class="profile-section">
-    <text class="profile-section-label">最近记录</text>
-    <view class="section-list surface-card">
-      <view class="section-row section-row--expanded" bindtap="toggleHistory">
-        <view class="section-card-main">
-          <image class="section-card-icon" src="/assets/icons/history.png" mode="aspectFit" />
-          <text class="section-card-title">历史对话记录</text>
-        </view>
-        <text class="section-card-arrow {{historyExpanded ? 'section-card-arrow--down' : ''}}">›</text>
+  <!-- Hero 个人卡片 -->
+  <view class="profile-section-wrap">
+    <view class="profile-hero-card">
+      <text class="profile-hero__watermark serif-title">回</text>
+
+      <view class="profile-heart-coin">
+        <image class="profile-heart-coin__icon" src="/assets/icons/like.svg" mode="aspectFit" />
+        <text class="profile-heart-coin__num serif-title">{{hearts}}</text>
       </view>
 
-      <view class="history-list" wx:if="{{historyExpanded}}">
-        <view class="history-empty" wx:if="{{!historyList || historyList.length === 0}}">
-          <text>还没有对话记录，去首页开始第一段体验吧</text>
+      <view class="profile-hero__top">
+        <view class="profile-avatar">
+          <text class="profile-avatar__initial serif-title">{{nameInitial}}</text>
         </view>
+        <view class="profile-hero__info">
+          <text class="profile-hero__name serif-title">{{nickname || '匿名旅人'}}</text>
+          <text class="profile-hero__bio">{{bio || '有些话，先在这里试着说。'}}</text>
+        </view>
+      </view>
 
-        <block wx:for="{{historyList}}" wx:key="_id">
-          <view class="history-item" data-id="{{item.scenario_id}}" catchtap="handleHistoryTap">
-            <view class="history-item-left">
-              <text class="history-title">{{item.title || item.scenario_id}}</text>
-              <text class="history-ending">{{item.endingLabel || '进行中'}}</text>
+      <view class="profile-hero__divider"></view>
+
+      <view class="profile-stats">
+        <view class="profile-stat">
+          <text class="profile-stat__num serif-title">{{scenarioCount || 0}}</text>
+          <text class="profile-stat__label">已体验副本</text>
+        </view>
+        <view class="profile-stat__sep"></view>
+        <view class="profile-stat">
+          <text class="profile-stat__num serif-title">{{endingCount || 0}}</text>
+          <text class="profile-stat__label">解锁结局</text>
+        </view>
+        <view class="profile-stat__sep"></view>
+        <view class="profile-stat">
+          <text class="profile-stat__num serif-title">{{totalRounds || 0}}</text>
+          <text class="profile-stat__label">累计对话轮</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 充值 Banner（心动值不足时显示） -->
+  <view class="profile-section-wrap" wx:if="{{showHeartBanner}}">
+    <view class="profile-banner">
+      <view class="profile-banner__icon-wrap">
+        <text class="profile-banner__icon">🩷</text>
+      </view>
+      <view class="profile-banner__text">
+        <text class="profile-banner__title">心动值余额不足</text>
+        <text class="profile-banner__sub">解锁更多场景需要消耗心动值</text>
+      </view>
+      <view class="profile-banner__btn">充值</view>
+    </view>
+  </view>
+
+  <!-- 最近演练 -->
+  <view class="profile-section-wrap">
+    <view class="profile-section__header">
+      <text class="profile-section__title serif-title">最近演练</text>
+    </view>
+    <view class="profile-card">
+      <view class="profile-empty" wx:if="{{!recentSessions || recentSessions.length === 0}}">
+        <text class="profile-empty__text">还没有演练记录，去首页开始第一段体验吧</text>
+      </view>
+      <block wx:for="{{recentSessions}}" wx:key="_id">
+        <view class="recent-row {{index > 0 ? 'recent-row--border' : ''}}"
+          bindtap="handleHistoryTap" data-id="{{item.scenario_id}}">
+          <view class="recent-row__dot"
+            style="background: linear-gradient(135deg, {{item.moodGrad0}}, {{item.moodGrad1}})">
+            <text class="recent-row__emoji">{{item.emoji}}</text>
+          </view>
+          <view class="recent-row__body">
+            <text class="recent-row__title">{{item.title || item.scenario_id}}</text>
+            <text class="recent-row__meta">{{item.category}} · {{item.dateStr}} {{item.timeStr}}</text>
+          </view>
+          <view class="recent-row__badge"
+            style="color: {{item.moodTag}}; background: {{item.moodTagBg}}">
+            <text>{{item.endingLabel || '进行中'}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 我的收藏 -->
+  <view class="profile-section-wrap">
+    <view class="profile-section__header">
+      <text class="profile-section__title serif-title">我的收藏</text>
+    </view>
+    <view class="profile-card profile-card--menu">
+      <view class="menu-row" bindtap="handleToggleFavs">
+        <view class="menu-row__icon">
+          <image class="menu-row__svg-icon" src="/assets/icons/star.svg" mode="aspectFit" />
+        </view>
+        <view class="menu-row__body">
+          <text class="menu-row__label">收藏的剧本</text>
+          <text class="menu-row__sub">{{favSub}}</text>
+        </view>
+        <view class="menu-row__badge" wx:if="{{favCount > 0}}">
+          <text>{{favCount}}</text>
+        </view>
+        <text class="menu-row__arrow menu-row__arrow--toggle {{favExpanded ? 'menu-row__arrow--open' : ''}}">›</text>
+      </view>
+      <view class="history-expand fav-expand {{favExpanded ? 'history-expand--open fav-expand--open' : ''}}">
+        <block wx:if="{{favItems && favItems.length > 0}}" wx:for="{{favItems}}" wx:key="id">
+          <view class="recent-row recent-row--border" bindtap="handleFavTap" data-id="{{item.id}}">
+            <view class="recent-row__dot"
+              style="background: linear-gradient(135deg, {{item.moodGrad0}}, {{item.moodGrad1}})">
+              <text class="recent-row__emoji">{{item.emoji}}</text>
             </view>
-            <view class="history-time-block">
-              <text class="history-date">{{item.dateStr}}</text>
-              <text class="history-time">{{item.timeStr}}</text>
+            <view class="recent-row__body">
+              <text class="recent-row__title">{{item.title}}</text>
+              <text class="recent-row__meta">{{item.category}} · {{item.openingLine}}</text>
+            </view>
+            <view class="recent-row__badge"
+              style="color: {{item.moodTag}}; background: {{item.moodTagBg}}">
+              <text>{{item.category}}</text>
             </view>
           </view>
         </block>
+        <view wx:if="{{!favItems || favItems.length === 0}}" class="history-expand-empty">
+          <text class="profile-empty__text">还没有收藏，去探索剧本吧</text>
+        </view>
+      </view>
+      <view class="menu-row menu-row--border" bindtap="handleToggleHistory">
+        <view class="menu-row__icon">
+          <image class="menu-row__svg-icon" src="/assets/icons/history-query.svg" mode="aspectFit" />
+        </view>
+        <view class="menu-row__body">
+          <text class="menu-row__label">历史对话记录</text>
+          <text class="menu-row__sub">共 {{scenarioCount || 0}} 段对话</text>
+        </view>
+        <text class="menu-row__arrow menu-row__arrow--toggle {{historyExpanded ? 'menu-row__arrow--open' : ''}}">›</text>
+      </view>
+      <view class="history-expand {{historyExpanded ? 'history-expand--open' : ''}}">
+        <block wx:if="{{allSessions && allSessions.length > 0}}" wx:for="{{allSessions}}" wx:key="_id">
+          <view class="recent-row recent-row--border" bindtap="handleHistoryTap" data-id="{{item.scenario_id}}">
+            <view class="recent-row__dot"
+              style="background: linear-gradient(135deg, {{item.moodGrad0}}, {{item.moodGrad1}})">
+              <text class="recent-row__emoji">{{item.emoji}}</text>
+            </view>
+            <view class="recent-row__body">
+              <text class="recent-row__title">{{item.title || item.scenario_id}}</text>
+              <text class="recent-row__meta">{{item.category}} · {{item.dateStr}} {{item.timeStr}}</text>
+            </view>
+            <view class="recent-row__badge"
+              style="color: {{item.moodTag}}; background: {{item.moodTagBg}}">
+              <text>{{item.endingLabel || '进行中'}}</text>
+            </view>
+          </view>
+        </block>
+        <view wx:if="{{!allSessions || allSessions.length === 0}}" class="history-expand-empty">
+          <text class="profile-empty__text">还没有对话记录</text>
+        </view>
       </view>
     </view>
   </view>
 
-  <view class="profile-section">
-    <text class="profile-section-label">功能</text>
-    <view class="section-list surface-card">
-      <view class="section-row" bindtap="handleSettings">
-        <view class="section-card-main">
-          <image class="section-card-icon" src="/assets/icons/setting.png" mode="aspectFit" />
-          <text class="section-card-title">设置</text>
-        </view>
-        <text class="section-card-arrow">›</text>
+  <!-- 我的成就 -->
+  <view class="profile-section-wrap">
+    <view class="profile-section__header">
+      <text class="profile-section__title serif-title">我的成就</text>
+    </view>
+    <scroll-view scroll-x class="achievements-scroll">
+      <view class="achievements-row">
+        <block wx:for="{{achievements}}" wx:key="id">
+          <view class="achievement-card {{item.unlocked ? 'achievement-card--unlocked' : ''}}"
+            style="{{item.unlocked ? 'background: linear-gradient(145deg, ' + item.grad0 + ', ' + item.grad1 + ')' : ''}}">
+            <text class="achievement-card__emoji">{{item.emoji}}</text>
+            <text class="achievement-card__label">{{item.label}}</text>
+            <text class="achievement-card__desc">{{item.desc}}</text>
+          </view>
+        </block>
       </view>
+    </scroll-view>
+  </view>
 
-      <view class="section-row" bindtap="handleAbout">
-        <view class="section-card-main">
-          <image class="section-card-icon" src="/assets/icons/more.png" mode="aspectFit" />
-          <text class="section-card-title">更多</text>
+  <!-- 设置与更多 -->
+  <view class="profile-section-wrap">
+    <view class="profile-section__header">
+      <text class="profile-section__title serif-title">设置与更多</text>
+    </view>
+    <view class="profile-card profile-card--menu">
+      <view class="menu-row" bindtap="handleSettings">
+        <view class="menu-row__icon"><text class="menu-row__icon-em">⚙️</text></view>
+        <view class="menu-row__body">
+          <text class="menu-row__label">设置</text>
+          <text class="menu-row__sub">通知、隐私、账户</text>
         </view>
-        <text class="section-card-arrow">›</text>
+        <text class="menu-row__arrow">›</text>
+      </view>
+      <view class="menu-row menu-row--border" bindtap="handleFeedback">
+        <view class="menu-row__icon"><text class="menu-row__icon-em">💬</text></view>
+        <view class="menu-row__body">
+          <text class="menu-row__label">意见反馈</text>
+          <text class="menu-row__sub">告诉我们你的想法</text>
+        </view>
+        <text class="menu-row__arrow">›</text>
+      </view>
+      <view class="menu-row menu-row--border" bindtap="handleAbout">
+        <view class="menu-row__icon"><text class="menu-row__icon-em">ℹ️</text></view>
+        <view class="menu-row__body">
+          <text class="menu-row__label">关于如果这样回</text>
+          <text class="menu-row__sub">v1.2.0</text>
+        </view>
+        <text class="menu-row__arrow">›</text>
       </view>
     </view>
+  </view>
+
+  <view class="profile-bottom-safe"></view>
+
+</view>
+
+<!-- 意见反馈弹层 -->
+<view class="feedback-overlay {{showFeedbackModal ? 'feedback-overlay--show' : ''}}" bindtap="handleFeedbackClose">
+  <view class="feedback-sheet {{showFeedbackModal ? 'feedback-sheet--show' : ''}}" catchtap="noop">
+
+    <view class="feedback-handle"></view>
+
+    <view class="feedback-sheet__header">
+      <text class="feedback-sheet__title serif-title">意见反馈</text>
+      <view class="feedback-sheet__close" bindtap="handleFeedbackClose">
+        <text class="feedback-sheet__close-icon">×</text>
+      </view>
+    </view>
+
+    <view class="feedback-tags">
+      <view wx:for="{{feedbackTypes}}" wx:key="value"
+        class="feedback-tag {{feedbackType === item.value ? 'feedback-tag--active' : ''}}"
+        bindtap="handleFeedbackTypeSelect" data-value="{{item.value}}">
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+
+    <view class="feedback-input-wrap">
+      <textarea class="feedback-textarea"
+        placeholder="说说你的想法，帮我们做得更好…"
+        placeholder-class="feedback-placeholder"
+        maxlength="300"
+        bindinput="handleFeedbackInput"
+        value="{{feedbackContent}}"
+        auto-height />
+      <text class="feedback-textarea__count">{{feedbackContent.length}}/300</text>
+    </view>
+
+    <view class="feedback-contact-wrap">
+      <text class="feedback-contact__label">联系方式（选填）</text>
+      <input class="feedback-contact__input"
+        placeholder="微信号 / 手机号，方便我们回复你"
+        placeholder-class="feedback-placeholder"
+        bindinput="handleContactInput"
+        value="{{feedbackContact}}" />
+    </view>
+
+    <view class="feedback-submit {{feedbackSubmitting || feedbackContent.length === 0 ? 'feedback-submit--disabled' : ''}}"
+      bindtap="handleFeedbackSubmit">
+      <text>{{feedbackSubmitting ? '提交中…' : '提交反馈'}}</text>
+    </view>
+
   </view>
 </view>

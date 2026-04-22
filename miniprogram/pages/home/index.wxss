@@ -413,6 +413,7 @@
   font-weight: 500;
 }
 
+
 /* ── Empty Panel ── */
 .empty-panel {
   padding: var(--space-20);

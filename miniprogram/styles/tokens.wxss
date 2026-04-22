@@ -41,6 +41,6 @@ page {
   --radius-input: 20rpx;
   --radius-pill: 999rpx;
 
-  --shadow-card: 0 4rpx 24rpx rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 8rpx 40rpx rgba(0, 0, 0, 0.14);
   --layout-page-padding: 32rpx;
 }

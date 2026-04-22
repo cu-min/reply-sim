@@ -28,6 +28,11 @@
       </block>
     </view>
     <text class="detail-hero__blurb" style="color: {{moodText}}99">{{script.blurb}}</text>
+    <!-- 收藏按钮：hero 右下角 -->
+    <view class="detail-hero__fav {{isFavorited ? 'detail-hero__fav--on' : ''}} {{favAnimating ? 'detail-hero__fav--pop' : ''}}"
+      bindtap="handleToggleFavorite">
+      <image class="detail-hero__fav-icon" src="/assets/icons/star.svg" mode="aspectFit" />
+    </view>
   </view>
 
   <!-- 内容区 -->

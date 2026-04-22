@@ -1,10 +1,35 @@
 const cloud = require("wx-server-sdk");
+const fs = require("fs");
+const path = require("path");
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
 
-const scenarios = [
+// 动态读取 /data/scenarios/ 目录中的所有 JSON 文件
+let scenarios = [];
+try {
+  const scenariosDir = path.join(__dirname, "../../../data/scenarios");
+  const files = fs.readdirSync(scenariosDir);
+  
+  files.forEach(file => {
+    if (file.endsWith(".json")) {
+      const filePath = path.join(scenariosDir, file);
+      const content = fs.readFileSync(filePath, "utf-8");
+      const scenario = JSON.parse(content);
+      scenarios.push(scenario);
+    }
+  });
+  
+  console.log(`[importScenarios] 动态加载了 ${scenarios.length} 个剧本`);
+} catch (error) {
+  console.error("[importScenarios] 动态加载剧本失败:", error.message);
+  // 如果动态加载失败，降级到空数组
+  scenarios = [];
+}
+
+// 备用的硬编码数据（当动态加载失败时作为降级方案，暂时移除以防冲突）
+const fallbackScenarios = [
   {
     "id": "crush-direct",
     "title": "“你是不是有话想跟我说？”",
@@ -1647,18 +1672,49 @@ const scenarios = [
 
 exports.main = async () => {
   try {
+    // 动态加载所有剧本文件
+    const scenarios = loadScenariosFromDirectory();
+    
+    if (scenarios.length === 0) {
+      return {
+        code: -1,
+        message: "未找到任何剧本，请检查 /data/scenarios/ 目录"
+      };
+    }
+
     let imported = 0;
     let skipped = 0;
+    const details = [];
 
     for (const scenario of scenarios) {
-      const existing = await db.collection("scenarios").where({ id: scenario.id }).limit(1).get();
-      if (existing.data.length) {
-        skipped += 1;
-        continue;
-      }
+      try {
+        const existing = await db.collection("scenarios").where({ id: scenario.id }).limit(1).get();
+        if (existing.data.length) {
+          skipped += 1;
+          details.push({ 
+            id: scenario.id, 
+            title: scenario.title,
+            status: "skipped" 
+          });
+          continue;
+        }
 
-      await db.collection("scenarios").add({ data: scenario });
-      imported += 1;
+        await db.collection("scenarios").add({ data: scenario });
+        imported += 1;
+        details.push({ 
+          id: scenario.id, 
+          title: scenario.title,
+          status: "imported" 
+        });
+      } catch (err) {
+        console.error(`[importScenarios] 导入剧本 ${scenario.id} 失败:`, err.message);
+        details.push({ 
+          id: scenario.id, 
+          title: scenario.title,
+          status: "error", 
+          message: err.message 
+        });
+      }
     }
 
     return {
@@ -1666,13 +1722,16 @@ exports.main = async () => {
       data: {
         imported,
         skipped,
-        total: scenarios.length
-      }
+        total: scenarios.length,
+        details
+      },
+      message: `导入 ${imported} 个新剧本，跳过 ${skipped} 个已存在的剧本`
     };
   } catch (error) {
+    console.error(`[importScenarios] 错误:`, error.message);
     return {
       code: -1,
-      message: error.message || "导入剧本失败"
+      message: error.message || "导入失败"
     };
   }
 };

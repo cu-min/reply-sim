@@ -5,6 +5,8 @@ const CAT_MOOD = {
   "职场": { grad: ["#B0BEC5", "#90A4AE"], text: "#2A3A4A", tag: "#90A4AE", emoji: "💼" },
 };
 
+const { getFavoritedIds } = require("../../services/favorites-service");
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -14,22 +16,29 @@ Page({
     featuredScripts: [],
     scripts: [],
     isEmpty: false,
-    loadHint: ""
+    loadHint: "",
+    favoritedIds: {}
   },
 
   onLoad() {
     const { statusBarHeight } = wx.getWindowInfo();
     this.setData({ statusBarHeight });
+    this._syncFavoritedIds();
     this.skipNextOnShow = true;
     this.loadPageData();
   },
 
   onShow() {
+    this._syncFavoritedIds();
     if (this.skipNextOnShow) {
       this.skipNextOnShow = false;
       return;
     }
     this.loadPageData();
+  },
+
+  _syncFavoritedIds() {
+    this.setData({ favoritedIds: getFavoritedIds() });
   },
 
   onPageScroll({ scrollTop }) {

@@ -1,4 +1,5 @@
 const { getEndingResult, getScriptDetail } = require("../../services/script-service");
+const { isFavorited, toggleFavorite } = require("../../services/favorites-service");
 
 function buildSummaryParagraphs(ending) {
   if (!ending) {
@@ -35,7 +36,9 @@ Page({
     script: null,
     ending: null,
     loadState: "loading",
-    errorMessage: ""
+    errorMessage: "",
+    isFavorited: false,
+    favAnimating: false
   },
 
   async onLoad(query) {
@@ -47,16 +50,15 @@ Page({
         const script = await getScriptDetail(lastEnding.scenarioId);
         const ending = buildEndingFromGlobal(lastEnding.ending);
 
+        const resolvedScript = script || { id: lastEnding.scenarioId, title: lastEnding.scriptTitle || "这段对话" };
         this.setData({
-          script: script || {
-            id: lastEnding.scenarioId,
-            title: lastEnding.scriptTitle || "这段对话"
-          },
+          script: resolvedScript,
           ending: Object.assign({}, ending, {
             summaryParagraphs: buildSummaryParagraphs(ending)
           }),
           loadState: "ready",
-          errorMessage: ""
+          errorMessage: "",
+          isFavorited: isFavorited(resolvedScript.id)
         });
         return;
       }
@@ -84,7 +86,8 @@ Page({
           summaryParagraphs: buildSummaryParagraphs(ending)
         }),
         loadState: "ready",
-        errorMessage: ""
+        errorMessage: "",
+        isFavorited: isFavorited(script.id)
       });
     } catch (error) {
       wx.showToast({
@@ -98,6 +101,14 @@ Page({
         errorMessage: "结局内容暂时加载失败，请稍后再试。"
       });
     }
+  },
+
+  handleToggleFavorite() {
+    const script = this.data.script;
+    if (!script) return;
+    const nowFav = toggleFavorite(script);
+    this.setData({ isFavorited: nowFav, favAnimating: true });
+    setTimeout(() => this.setData({ favAnimating: false }), 380);
   },
 
   handleReplay() {

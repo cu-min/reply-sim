@@ -222,6 +222,47 @@
   line-height: 1.4;
 }
 
+/* ── Hero Fav Button ── */
+@keyframes detail-fav-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.5); }
+  70%  { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+
+.detail-hero__fav {
+  position: absolute;
+  right: var(--layout-page-padding);
+  bottom: 40rpx;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  border: 2rpx solid rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-hero__fav--on {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.detail-hero__fav-icon {
+  width: 36rpx;
+  height: 36rpx;
+  opacity: 0.65;
+  filter: brightness(10);
+}
+
+.detail-hero__fav--on .detail-hero__fav-icon {
+  opacity: 1;
+}
+
+.detail-hero__fav--pop {
+  animation: detail-fav-pop 0.35s ease;
+}
+
 /* ── Actions ── */
 .detail-actions {
   padding: var(--space-16) var(--layout-page-padding) calc(var(--space-40) + env(safe-area-inset-bottom));

@@ -1,0 +1,440 @@
+{
+  "id": "family-resistance-study",
+  "title": "\"你根本不懂我想什么\"",
+  "category": "家庭冲突",
+  "cover": {
+    "opening_message": "听说你不想继续考研了？",
+    "subtitle": "她从别人那听来，而你终于要为自己说话。",
+    "tags": [
+      "家庭冲突",
+      "代沟",
+      "被不理解",
+      "人生选择"
+    ]
+  },
+  "character": {
+    "name": "林妈",
+    "gender": "女",
+    "age": 52,
+    "occupation": "小学教师",
+    "relationship": "母亲",
+    "archetype": "感情化期许型",
+    "personality": "感情化、长期期许、掌控欲强。表面关心，实则是道德绑架。习惯用自己的投入来衡量孩子是否孝顺。",
+    "speaking_style": "句子长，容易反复强调。喜欢拿别人家孩子来比较。当被反驳时会转向\"你没良心\"。",
+    "attitude_to_relationship": "嘴上说是为你好，实际上是在实现自己未完成的期待。",
+    "initial_mood": "失望+生气，因为从别人那听来了风声。",
+    "initial_favorability": 35,
+    "current_attitude": "试图纠正你的选择，通过给压力来重新拉回你。"
+  },
+  "background": "你已经工作第二年了。妈妈当初期望你考研进名校，但你选择了直接工作。工作虽然稳定但不\"高端\"，这让她一直在否定你的选择。今天她从别人那听来说你要放弃了，才打来这通电话。",
+  "scene_prompt": "这一次，你不再逃避，而是想好好为自己说话。但对方是你的母亲，每一个反驳都像是不孝。你需要找到方式，既表达真实的自己，又面对这段关系可能被冷淡的风险。",
+  "ending_triggers": {
+    "description": "满足以下任意条件时，对话可进入结局阶段。",
+    "conditions": [
+      "用户明确表达了对自己人生的掌控权",
+      "双方的态度发生了显著转折",
+      "对话进入循环且无新内容",
+      "轮数达到上限（第8轮）"
+    ]
+  },
+  "possible_endings": [
+    {
+      "id": "ending-family-coldsilence",
+      "type": "closure",
+      "label": "冷战",
+      "hint": "妈妈开始沉默了。",
+      "impact_line": "电话那头沉默了很久。她不再唠叨了，但那种沉默比任何责备都更让人难受。",
+      "relationship_result": "你赢了这一次对话，但妈妈开始了冷战。她停止了纠缠，却用沉默在惩罚你。",
+      "key_behavior_feedback": "你没有妥协，坚持表达了真实想法。但代价是，她选择了放弃理解。",
+      "missed_branch_hint": "如果你在第6轮时能温和一点，告诉她你理解她的关心，也许情况会不一样。",
+      "literary_closing": "有些对话赢了，却输掉了关系。你发现，有时候坚持也是一种孤独。",
+      "badge_label": "冷战"
+    },
+    {
+      "id": "ending-family-breakice",
+      "type": "warmth",
+      "label": "突然的理解",
+      "hint": "妈妈第一次停下来，真的听你说了。",
+      "impact_line": "\"我... 也许我确实不理解你。\" 她的声音变得很小，带一点哭腔。",
+      "relationship_result": "妈妈被你的真实刺痛了，但也第一次开始反思。她没有马上承认所有错误，但她停止了否定。",
+      "key_behavior_feedback": "你既坚持了自己，也在某个时刻给了她认错的机会和尊严。",
+      "missed_branch_hint": "如果第7轮你再温和一点，她可能会完全放下防备。",
+      "literary_closing": "有些时候，被理解不需要对方完全同意，只需要他们愿意停下来听。",
+      "badge_label": "突然的理解"
+    },
+    {
+      "id": "ending-family-compromise",
+      "type": "ambiguous",
+      "label": "各退一步",
+      "hint": "不是真正的理解，但至少是个开始。",
+      "impact_line": "\"那... 你既然已经决定了，我也没办法。只是希望你能照顾好自己。\"",
+      "relationship_result": "妈妈放弃了继续改变你，但这不是出于理解，而是出于无力。至少她同意不再纠缠。",
+      "key_behavior_feedback": "你用耐心和清晰的立场，让她意识到再纠缠也改变不了你。",
+      "missed_branch_hint": "如果你能在妥协时加入更多对她的认可，下一次沟通会更顺利。",
+      "literary_closing": "有些关系不是化解，而是互相学会了保持距离。",
+      "badge_label": "各退一步"
+    },
+    {
+      "id": "ending-family-loop",
+      "type": "closure",
+      "label": "陷入循环",
+      "hint": "你们还是没有听懂彼此。",
+      "impact_line": "对话又回到了起点。她在重复\"你这样下去\", 你在重复\"我有我的想法\"。",
+      "relationship_result": "这一次对话就像之前的一千次一样，以新的指责或者沉默结束。什么都没有改变。",
+      "key_behavior_feedback": "你陷入了防守，无法真正打破这个模式。也许下一次，你需要用完全不同的方式。",
+      "missed_branch_hint": "如果你能在某个时刻说出自己的脆弱，而不只是反抗，可能会打破这个循环。",
+      "literary_closing": "有些循环不是由于谁的错，而是因为双方都太怕被改变了。",
+      "badge_label": "陷入循环"
+    }
+  ],
+  "turns": [
+    {
+      "id": "family-turn-1",
+      "assistant_message": "听说你不想继续考研了？工作怎么样，能给你什么好处吗？我听王阿姨说，她儿子已经在准备读研的事了。你现在就这样放弃了，到底要做到什么时候啊？",
+      "emotion_hint": "失望、生气、试图纠正",
+      "strategies": [
+        {
+          "id": "family-turn1-intent-1",
+          "label": "先稳住，不激化",
+          "description": "别让局面一开始就炸裂。简短有力，但留下后续的空间。",
+          "replies": [
+            {
+              "id": "family-turn1-reply-1a",
+              "style_label": "冷静澄清",
+              "style_description": "先说清楚，再说原因。",
+              "content": "妈，我没有放弃什么。我现在工作做得不错，只是还在想要不要读研。这个事儿没那么简单。"
+            },
+            {
+              "id": "family-turn1-reply-1b",
+              "style_label": "温和反驳",
+              "style_description": "承认她的关心，但也说出自己的想法。",
+              "content": "我知道你担心，但我的选择有我的理由。不是说工作就是放弃了，我们先别比较，好吗？"
+            }
+          ]
+        },
+        {
+          "id": "family-turn1-intent-2",
+          "label": "开始反击，但还有分寸",
+          "description": "表达你的不满，但不是完全的对抗。",
+          "replies": [
+            {
+              "id": "family-turn1-reply-1c",
+              "style_label": "表达委屈",
+              "style_description": "让她听到你的真实感受。",
+              "content": "你每次都拿别人家的孩子来说，有没有想过我听起来什么感受？我也很努力，为什么就看不见？"
+            },
+            {
+              "id": "family-turn1-reply-1d",
+              "style_label": "直接质疑",
+              "style_description": "问出心里话。",
+              "content": "妈，你关心的真的是我过得怎么样吗？还是你在意的只是我的学历和别人的比较？"
+            }
+          ]
+        },
+        {
+          "id": "family-turn1-intent-3",
+          "label": "拒绝讨论，设置边界",
+          "description": "这个电话不是来让你指责的。",
+          "replies": [
+            {
+              "id": "family-turn1-reply-1e",
+              "style_label": "冷静但坚定",
+              "style_description": "告诉她你不接受这种方式。",
+              "content": "妈，我很累。我不想再听王阿姨怎么样，也不想再为我的选择辩解。我是我，不是她儿子。"
+            },
+            {
+              "id": "family-turn1-reply-1f",
+              "style_label": "保护自己",
+              "style_description": "表明态度，如果继续就挂电话。",
+              "content": "你要不相信我，我也没办法。但我不会因为你失望就改变自己的决定。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "family-turn-2",
+      "assistant_message": "我不是要比较。我是为你好啊，你怎么总是这样？我和你爸这些年付出了多少，你心里没数吗？我只是怕你走错路。你现在的样子，就像你把所有事情都要搞砸了一样。",
+      "emotion_hint": "开始用过去的投资作筹码，转向道德绑架",
+      "strategies": [
+        {
+          "id": "family-turn2-intent-1",
+          "label": "听她说，但也表达你的立场",
+          "description": "不完全反抗，但也不屈服。给她表达的机会，也给自己说话的机会。",
+          "replies": [
+            {
+              "id": "family-turn2-reply-2a",
+              "style_label": "承认但不认罪",
+              "style_description": "听见她的投入，但不被它绑架。",
+              "content": "我知道你和爸爸付出了很多，我也很感激。但感激，和按照你的想法活，这是两回事。"
+            },
+            {
+              "id": "family-turn2-reply-2b",
+              "style_label": "柔和但清晰",
+              "style_description": "说出真话，但不刺痛。",
+              "content": "你说的我都理解。可是妈，为我好和理解我的想法，这是两个不同的东西。我希望你能试试去理解。"
+            }
+          ]
+        },
+        {
+          "id": "family-turn2-intent-2",
+          "label": "开始翻起旧账",
+          "description": "不再只防守，开始进攻。说出那些从未敢说的话。",
+          "replies": [
+            {
+              "id": "family-turn2-reply-2c",
+              "style_label": "控诉",
+              "style_description": "这一次，你说出了压抑的东西。",
+              "content": "从小到大，你考虑过一次我的感受吗？选专业时你说这个好，选工作时又说那个不行。我想试试自己的方式，有什么错吗？"
+            },
+            {
+              "id": "family-turn2-reply-2d",
+              "style_label": "深刻的质疑",
+              "style_description": "戳中问题的本质。",
+              "content": "你从来不是为我好。你只是在用我完成你的梦想。我付出的代价，你从没真的看过。"
+            }
+          ]
+        },
+        {
+          "id": "family-turn2-intent-3",
+          "label": "停止讨论，设置绝对边界",
+          "description": "你受够了。这通电话要么改变态度，要么结束。",
+          "replies": [
+            {
+              "id": "family-turn2-reply-2e",
+              "style_label": "冷硬",
+              "style_description": "不再给她调整的机会。",
+              "content": "妈，我不能因为你失望就否定自己。我也做不到。这通电话就到这里吧。"
+            },
+            {
+              "id": "family-turn2-reply-2f",
+              "style_label": "伤感但决绝",
+              "style_description": "表达你已经彻底疲惫。",
+              "content": "我真的累了。我不想再这样被否定了。你要相信我，我们就继续。你非要我改变，那我们就没什么好说的。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "family-turn-3",
+      "assistant_message": "你这是在怪我吗？我怎么会不为你好呢？我...（声音有点破裂）。看看你现在的样子，我都不认识你了。你什么时候开始这么倔了？",
+      "emotion_hint": "被刺痛，开始有所松动，但还在防守",
+      "strategies": [
+        {
+          "id": "family-turn3-intent-1",
+          "label": "抓住这个裂口，推进理解",
+          "description": "她开始软了。这是最好的时机。温和地推进，让她继续放下防备。",
+          "replies": [
+            {
+              "id": "family-turn3-reply-3a",
+              "style_label": "给她下台阶",
+              "style_description": "既然她愿意听，就不要咄咄逼人。",
+              "content": "我不是怪你。只是...我需要你能听到，我不是在反抗你，我是在听听自己的声音。"
+            },
+            {
+              "id": "family-turn3-reply-3b",
+              "style_label": "温度转换",
+              "style_description": "从反击转向诚恳。",
+              "content": "我知道你为我好。但也许...为我好的方式，可以不一样？我可以自己错，只要你别替我决定。"
+            }
+          ]
+        },
+        {
+          "id": "family-turn3-intent-2",
+          "label": "继续说真话，但加入脆弱",
+          "description": "不再只是反抗，而是让她看到反抗背后的痛。",
+          "replies": [
+            {
+              "id": "family-turn3-reply-3c",
+              "style_label": "说出深处的话",
+              "style_description": "关键时刻，说出真实感受。",
+              "content": "我没有变。我只是...有时候很害怕。害怕让你失望，害怕我的选择不够好。所以我一直在逃，在隐瞒。现在我不想了。"
+            },
+            {
+              "id": "family-turn3-reply-3d",
+              "style_label": "坦白",
+              "style_description": "说出内心的挣扎。",
+              "content": "其实我一直很后悔。后悔为了让你满意，我浪费了这么多时间。现在我连自己想要什么都不知道了。"
+            }
+          ]
+        },
+        {
+          "id": "family-turn3-intent-3",
+          "label": "坚持立场，但不再对抗",
+          "description": "不会改变想法，但换一种方式表达。",
+          "replies": [
+            {
+              "id": "family-turn3-reply-3e",
+              "style_label": "坚定但平静",
+              "style_description": "说出最后的底线。",
+              "content": "你养了我这么多年，我永远都感谢。但我的人生，还是要自己去活。我会失败，会后悔，但那是我的功课。"
+            },
+            {
+              "id": "family-turn3-reply-3f",
+              "style_label": "成长的宣言",
+              "style_description": "说出你的转变。",
+              "content": "我变的不是因为倔，是因为我长大了。长大就是要学会对自己的决定负责，这个我能做到。我只是希望你能陪我，而不是阻止我。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "family-turn-4",
+      "assistant_message": "对自己的决定负责？你现在什么都没有啊。工作也一般，学历也没有... 你还想怎么样？我是真的替你感到...（停顿），算了。你爱怎么着就怎么着吧。",
+      "emotion_hint": "妈妈在退缩，开始用冷战替代纠缠",
+      "ending_id": "ending-family-coldsilence",
+      "ending_prompt": "她要放弃你了吗？你要怎么接住这一刻？",
+      "strategies": [
+        {
+          "id": "family-turn4-intent-1",
+          "label": "最后一次靠近",
+          "description": "这是最后的机会窗口。如果现在不说，就真的冷战了。",
+          "replies": [
+            {
+              "id": "family-turn4-reply-4a",
+              "style_label": "脆弱的邀请",
+              "style_description": "让她看到你的真实需要。",
+              "content": "妈，我不是不需要你。我只是...希望你能在我失败的时候，还愿意陪我，而不是说'我早就说过'。"
+            },
+            {
+              "id": "family-turn4-reply-4b",
+              "style_label": "诚恳的请求",
+              "style_description": "最后一次请她相信你。",
+              "content": "我知道我现在什么都没有。但至少给我一次机会，让我试试看能成为什么。你不用同意我，只需要不反对。"
+            }
+          ]
+        },
+        {
+          "id": "family-turn4-intent-2",
+          "label": "接纳这个结局，但坚持自己",
+          "description": "如果她要冷战，那就冷战吧。你不会因此改变。",
+          "replies": [
+            {
+              "id": "family-turn4-reply-4c",
+              "style_label": "平静的接纳",
+              "style_description": "不再争取，只是说出事实。",
+              "content": "好的。我听到你了。你失望了，我也接受。但不管你怎么想，我还是会按照我的方式活下去。"
+            },
+            {
+              "id": "family-turn4-reply-4d",
+              "style_label": "决然的割舍",
+              "style_description": "比她更先选择放手。",
+              "content": "也许这样对你会更轻松吧。你就当没有我这样的孩子。我也不用再为了让你满意而活了。"
+            }
+          ]
+        },
+        {
+          "id": "family-turn4-intent-3",
+          "label": "最后的温暖",
+          "description": "不管她怎样，你选择用爱来回应。",
+          "replies": [
+            {
+              "id": "family-turn4-reply-4e",
+              "style_label": "带着爱的承诺",
+              "style_description": "即使关系冷了，你也给出承诺。",
+              "content": "我不能让你满意，但我能承诺会照顾好自己。这样，也许你不用那么担心了。"
+            },
+            {
+              "id": "family-turn4-reply-4f",
+              "style_label": "希望的种子",
+              "style_description": "给关系留一条出路。",
+              "content": "等我有一天真的做成了什么，你会看到的。我希望那时候，你还愿意为我高兴。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "family-turn-5",
+      "assistant_message": "算了，我累了。你开心就好。我去忙别的了。",
+      "emotion_hint": "彻底的冷战，或者可能是心防的最后一道缝隙",
+      "strategies": [
+        {
+          "id": "family-turn5-intent-1",
+          "label": "说最后的话，然后放手",
+          "description": "这次对话要结束了。用最真实的话做个结尾。",
+          "replies": [
+            {
+              "id": "family-turn5-reply-5a",
+              "style_label": "最后的告白",
+              "style_description": "说出所有的真话。",
+              "content": "妈，不管你信不信，我爱你。但我也爱我自己。这两个爱，不冲突。希望有一天你能理解。"
+            },
+            {
+              "id": "family-turn5-reply-5b",
+              "style_label": "决绝但不绝望",
+              "style_description": "画上句号，但留着希望。",
+              "content": "我知道我让你失望了。但这是我必须走的路。我希望你能慢慢接受，或者...至少不要恨我。"
+            }
+          ]
+        },
+        {
+          "id": "family-turn5-intent-2",
+          "label": "挽留，但用成熟的方式",
+          "description": "不乞求，但真诚地邀请她回到对话。",
+          "replies": [
+            {
+              "id": "family-turn5-reply-5c",
+              "style_label": "邀请，不乞求",
+              "style_description": "给她回头的机会，但不卑微。",
+              "content": "妈，如果你改变主意了，我们可以再聊。不是辩论谁对谁错，就是...妈妈和女儿好好聊天。"
+            },
+            {
+              "id": "family-turn5-reply-5d",
+              "style_label": "用行动说话的承诺",
+              "style_description": "不再用言语解释，用结果来证明。",
+              "content": "你不用再说了。我会用行动给你看，我的选择是对的。到时候你就知道，我没有放弃自己。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "family-turn-6",
+      "assistant_message": "（沉默）...你听到那边的声音了吗？你爸在叫我吃饭。我先挂了。照顾好自己。",
+      "emotion_hint": "冷战的表面，但语气里有一点点转变",
+      "strategies": [
+        {
+          "id": "family-turn6-intent-1",
+          "label": "在她要挂电话前，说最重要的话",
+          "description": "这是最后的窗口。抓住它。",
+          "replies": [
+            {
+              "id": "family-turn6-reply-6a",
+              "style_label": "急切但不乞求",
+              "style_description": "快速说出你想说的。",
+              "content": "妈等等。我只想说，感谢你这些年。我会好好活着，也会想你。"
+            },
+            {
+              "id": "family-turn6-reply-6b",
+              "style_label": "用她的语言回应",
+              "style_description": "妈妈说的最后一句是\"照顾好自己\"，这是关心。接住它。",
+              "content": "好，我会的。你也照顾好自己。妈。"
+            }
+          ]
+        },
+        {
+          "id": "family-turn6-intent-2",
+          "label": "让她去，不再纠缠",
+          "description": "对话的结束，就这样结束了。平静地接纳。",
+          "replies": [
+            {
+              "id": "family-turn6-reply-6c",
+              "style_label": "平静的告别",
+              "style_description": "不悲，不怨，就是说再见。",
+              "content": "好的，妈。再见。"
+            },
+            {
+              "id": "family-turn6-reply-6d",
+              "style_label": "简短而有尊严",
+              "style_description": "一句话就够了。",
+              "content": "嗯。拜。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

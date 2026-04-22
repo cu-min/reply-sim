@@ -21,6 +21,11 @@
       <image class="share-icon" src="/assets/icons/share.png" mode="aspectFit" />
       <text>一键分享</text>
     </button>
+    <view class="ending-fav-btn {{isFavorited ? 'ending-fav-btn--on' : ''}} {{favAnimating ? 'ending-fav-btn--pop' : ''}}"
+      bindtap="handleToggleFavorite">
+      <image class="ending-fav-icon" src="/assets/icons/star.svg" mode="aspectFit" />
+      <text class="ending-fav-label">{{isFavorited ? '已收藏这段剧本' : '收藏这段剧本'}}</text>
+    </view>
     <button class="secondary-button ending-action-secondary" bindtap="handleReplay">再来一局</button>
     <button class="ending-action-link" bindtap="handleReplay">换个方式</button>
   </view>

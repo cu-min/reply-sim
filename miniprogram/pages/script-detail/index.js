@@ -1,6 +1,7 @@
 const { getScriptDetail } = require("../../services/script-service");
 const { createSession } = require("../../services/session-service");
 const { checkHearts } = require("../../services/heart-service");
+const { isFavorited, toggleFavorite } = require("../../services/favorites-service");
 
 const CAT_MOOD = {
   "暗恋": { grad: ["#D4B5A0", "#C49A85"], text: "#6B3A2A", tag: "#C49A85", emoji: "🌙" },
@@ -19,7 +20,9 @@ Page({
     moodBg: "linear-gradient(145deg, #D4B5A0, #C49A85)",
     moodTagColor: "#C49A85",
     moodText: "#6B3A2A",
-    emoji: "🌙"
+    emoji: "🌙",
+    isFavorited: false,
+    favAnimating: false
   },
 
   async onLoad(query) {
@@ -65,7 +68,8 @@ Page({
         moodBg: `linear-gradient(145deg, ${mood.grad[0]}, ${mood.grad[1]})`,
         moodTagColor: mood.tag,
         moodText: mood.text,
-        emoji: mood.emoji
+        emoji: mood.emoji,
+        isFavorited: isFavorited(script.id)
       });
 
       if (script.__fallbackSource === "local") {
@@ -129,6 +133,14 @@ Page({
     wx.navigateTo({
       url: "/pages/chat/index?scriptId=" + script.id + (cloudSessionId ? "&cloudSessionId=" + cloudSessionId : "")
     });
+  },
+
+  handleToggleFavorite() {
+    const script = this.data.script;
+    if (!script) return;
+    const nowFav = toggleFavorite(script);
+    this.setData({ isFavorited: nowFav, favAnimating: true });
+    setTimeout(() => this.setData({ favAnimating: false }), 380);
   },
 
   handleBack() {
