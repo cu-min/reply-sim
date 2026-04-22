@@ -18,6 +18,8 @@
 - 微信云开发（云函数 + 云数据库）
 - DeepSeek API（对话生成引擎）
 
+当前版本采用单云环境发布，`develop / trial / release` 共用同一套云开发环境，不做环境隔离。
+
 ---
 
 ## 目录结构
@@ -33,7 +35,7 @@
 │   │   ├── intent-chip/          # 意图策略按钮
 │   │   └── reply-option/         # 候选回复卡片
 │   ├── config/                   # 运行时配置
-│   │   └── env.js                # 云环境 ID（dev / prod 分离）
+│   │   └── env.js                # 云环境 ID（当前单环境发布）
 │   ├── mock/                     # 本地 mock 数据（脚本生成的开发兜底）
 │   │   └── scenarios/            # 剧本运行层适配
 │   ├── pages/
@@ -66,6 +68,7 @@
 │   ├── heartManager/             # 心动值管理
 │   ├── chatEngine/               # DeepSeek 对话引擎
 │   ├── importScenarios/          # 剧本数据同步（读取部署快照）
+│   ├── submitFeedback/           # 用户反馈提交
 │   ├── dataAudit/                # 线上数据核查（开发工具）
 │   └── DB_SCHEMA.md              # 数据库集合设计文档
 ├── data/
@@ -111,6 +114,8 @@
 | `scenarios` | 剧本数据 | 所有用户可读 |
 | `sessions` | 对话会话记录 | 仅创建者可读写 |
 | `endings` | 结局记录 | 仅创建者可读写 |
+| `message_requests` | `chatEngine` 幂等、防重与响应缓存 | 仅创建者可读写 |
+| `feedbacks` | 用户反馈 | 仅创建者可读写 |
 
 ---
 
@@ -128,6 +133,7 @@
 | `heartManager` | 心动值查询 |
 | `chatEngine` | DeepSeek 对话引擎（策略 / 候选 / 回应），含首轮心动值扣减 |
 | `importScenarios` | 按剧本真源快照同步到 `scenarios` 集合 |
+| `submitFeedback` | 提交用户反馈到 `feedbacks` 集合 |
 | `dataAudit` | 线上数据核查（开发工具，不对用户开放） |
 
 ---
@@ -154,8 +160,8 @@
 ### 运行步骤
 1. 用微信开发者工具打开项目根目录
 2. 确认 `project.config.json` 中的 `appid` 为你的小程序 AppID
-3. 在 `miniprogram/config/env.js` 中填写你的云开发环境 ID（dev / prod 分别配置）
-4. 在云开发控制台创建 6 个集合：`users`、`scenarios`、`sessions`、`endings`、`requests`、`feedbacks`
+3. 在 `miniprogram/config/env.js` 中填写你的云开发环境 ID（当前 `dev / prod` 指向同一个环境，用于单环境发布）
+4. 在云开发控制台创建 6 个集合：`users`、`scenarios`、`sessions`、`endings`、`message_requests`、`feedbacks`
 5. 逐个部署 `cloudfunctions/` 下的所有云函数（右键 → 上传并部署：云端安装依赖）
 6. 在云函数 `chatEngine` 的环境变量中配置 `DEEPSEEK_API_KEY`
 7. 修改剧本时只编辑 `data/scenarios/*.json`
@@ -222,5 +228,6 @@ npm run scenarios:generate-mock
 - 剧本真源固定为 `data/scenarios/*.json`，不要再手工修改 `miniprogram/mock/scenarios/*.js` 或 `importScenarios/index.js` 中的剧本正文
 - `cloudfunctions/importScenarios/scenarios/` 是部署快照目录，由 `npm run scenarios:prepare-import` 生成，不直接手工维护
 - `miniprogram/mock/scenarios/*.js` 由 `npm run scenarios:generate-mock` 自动生成，作为开发兜底
+- 当前发布策略为单云环境发布，`develop / trial / release` 共用同一个云环境
 - tabbar 和分享图标目前为占位资源，需按 `assets/tabbar/ICON_SPEC.md` 规格替换正式图标
 - DeepSeek API Key 需通过云函数环境变量配置，不要硬编码到代码中

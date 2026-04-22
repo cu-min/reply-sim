@@ -1,6 +1,6 @@
 const CLOUD_ENV_IDS = {
   dev: "ran-1g26gduhce2045d3",
-  prod: ""
+  prod: "ran-1g26gduhce2045d3"
 };
 
 function getMiniProgramEnvVersion() {

@@ -3,7 +3,10 @@ const cloud = require("wx-server-sdk");
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
+const _ = db.command;
 const DEFAULT_USER_HEARTS = 5;
+const PAGE_SIZE = 100;
+const SCENARIO_BATCH_SIZE = 50;
 
 function getUserDocId(openid) {
   return "user_" + openid;
@@ -68,27 +71,49 @@ async function ensureCanonicalUser(openid) {
   return userRecord;
 }
 
+async function fetchAllRecords(query) {
+  const records = [];
+  let offset = 0;
+
+  while (true) {
+    const { data } = await query.skip(offset).limit(PAGE_SIZE).get();
+    records.push(...(data || []));
+
+    if (!data || data.length < PAGE_SIZE) {
+      break;
+    }
+
+    offset += data.length;
+  }
+
+  return records;
+}
+
+async function fetchScenariosByIds(ids) {
+  const scenarioIds = Array.from(new Set((ids || []).filter(Boolean)));
+  const scenarios = [];
+
+  for (let index = 0; index < scenarioIds.length; index += SCENARIO_BATCH_SIZE) {
+    const batch = scenarioIds.slice(index, index + SCENARIO_BATCH_SIZE);
+    const { data } = await db.collection("scenarios").where({ id: _.in(batch) }).get();
+    scenarios.push(...(data || []));
+  }
+
+  return scenarios;
+}
+
 exports.main = async () => {
   try {
     const openid = cloud.getWXContext().OPENID;
     const user = await ensureCanonicalUser(openid);
 
-    const [endingsRes, sessionsRes] = await Promise.all([
-      db.collection("endings").where({ openid }).get(),
-      db.collection("sessions").where({ openid }).orderBy("updated_at", "desc").get()
+    const [endings, sessions] = await Promise.all([
+      fetchAllRecords(db.collection("endings").where({ openid })),
+      fetchAllRecords(db.collection("sessions").where({ openid }).orderBy("updated_at", "desc"))
     ]);
 
-    const endings = endingsRes.data || [];
-    const sessions = sessionsRes.data || [];
-
     const scenarioIds = Array.from(new Set(sessions.map((item) => item.scenario_id).filter(Boolean)));
-    let scenarios = [];
-
-    if (scenarioIds.length > 0) {
-      const _ = db.command;
-      const scenarioRes = await db.collection("scenarios").where({ id: _.in(scenarioIds) }).get();
-      scenarios = scenarioRes.data || [];
-    }
+    const scenarios = scenarioIds.length > 0 ? await fetchScenariosByIds(scenarioIds) : [];
 
     const scenarioMap = scenarios.reduce((map, item) => {
       map[item.id] = item;
@@ -106,6 +131,7 @@ exports.main = async () => {
 
     const recentSessions = sessions.slice(0, 20).map((session) => {
       const updatedAt = normalizeDate(session.updated_at) || normalizeDate(session.created_at);
+      const createdAt = normalizeDate(session.created_at);
       const linkedScenario = scenarioMap[session.scenario_id] || {};
       const linkedEnding = endingMap[session._id] || {};
 
@@ -113,11 +139,12 @@ exports.main = async () => {
         _id: session._id,
         scenario_id: session.scenario_id,
         title: linkedScenario.title || session.scenario_id || "未命名剧本",
+        category: linkedScenario.category || "",
         status: session.status || "ongoing",
         endingId: linkedEnding.ending_id || "",
         endingLabel: linkedEnding.ending_label || linkedEnding.badge_label || linkedEnding.ending_type || "",
         updated_at: updatedAt ? updatedAt.toISOString() : "",
-        created_at: normalizeDate(session.created_at) ? normalizeDate(session.created_at).toISOString() : ""
+        created_at: createdAt ? createdAt.toISOString() : ""
       };
     });
 
