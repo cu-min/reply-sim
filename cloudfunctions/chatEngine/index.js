@@ -48,10 +48,14 @@ function parseJSON(text) {
   }
 }
 
-async function callDeepSeek(systemPrompt, userPrompt) {
+async function callDeepSeek(systemPrompt, userPrompt, maxTokens, label) {
   if (!DEEPSEEK_API_KEY) {
     throw new ChatEngineError("DEEPSEEK_KEY_MISSING", "缺少 DeepSeek API Key 配置");
   }
+
+  const tag = label || "deepseek";
+  const t0 = Date.now();
+  console.log("[TIMING]", tag, "start", t0);
 
   const postData = JSON.stringify({
     model: DEEPSEEK_MODEL,
@@ -60,7 +64,7 @@ async function callDeepSeek(systemPrompt, userPrompt) {
       { role: "user", content: userPrompt }
     ],
     temperature: 0.85,
-    max_tokens: 1500
+    max_tokens: maxTokens || 800
   });
 
   return new Promise((resolve, reject) => {
@@ -81,6 +85,8 @@ async function callDeepSeek(systemPrompt, userPrompt) {
         });
 
         res.on("end", () => {
+          const elapsed = Date.now() - t0;
+          console.log("[TIMING]", tag, "done", elapsed + "ms", "status=" + res.statusCode);
           try {
             const json = JSON.parse(body);
 
@@ -113,10 +119,14 @@ async function callDeepSeek(systemPrompt, userPrompt) {
     );
 
     req.on("error", (error) => {
+      const elapsed = Date.now() - t0;
+      console.log("[TIMING]", tag, "error", elapsed + "ms", error.message);
       reject(new ChatEngineError("DEEPSEEK_NETWORK_ERROR", error.message || "DeepSeek 网络请求失败"));
     });
 
     req.setTimeout(30000, () => {
+      const elapsed = Date.now() - t0;
+      console.log("[TIMING]", tag, "timeout", elapsed + "ms");
       req.destroy();
       reject(new ChatEngineError("DEEPSEEK_TIMEOUT", "DeepSeek 请求超时"));
     });
@@ -265,6 +275,25 @@ function isValidEnding(ending) {
   );
 }
 
+function buildCoachSystemPrompt(character, background, currentMood, currentFavorability) {
+  return `你是"如果这样回"对话教练。你的任务是帮助用户找到最适合的回复方式，与 ${character.name || "对方"} 沟通。
+
+## 对方的信息
+姓名：${character.name || "对方"}
+性别：${character.gender || "未知"}
+性格：${character.personality || character.archetype || ""}
+说话风格：${character.speaking_style || ""}
+对这段关系的态度：${character.attitude_to_relationship || character.current_attitude || ""}
+当前情绪状态：${currentMood}
+当前好感度：${currentFavorability}/100
+
+## 故事背景
+${background}
+
+## 你的角色
+你是教练，不是 ${character.name || "对方"}。你生成的所有内容都是【用户】应该说的话，用于回应对方。`;
+}
+
 function buildSystemPrompt(character, background, currentMood, currentFavorability) {
   return `你是“如果这样回”对话模拟引擎。你的任务是扮演一个真实的人，与用户进行情感对话模拟。
 ## 你扮演的角色
@@ -357,7 +386,7 @@ function normalizeReply(reply, index, strategyId) {
 async function generateStrategies(session) {
   const character = session.scenarioData.character || {};
   const background = session.scenarioData.background || "";
-  const systemPrompt = buildSystemPrompt(
+  const systemPrompt = buildCoachSystemPrompt(
     character,
     background,
     session.current_mood,
@@ -365,7 +394,7 @@ async function generateStrategies(session) {
   );
 
   const userPrompt = `## 任务
-根据当前对话状态，为用户生成 3 个不同方向的回复策略。
+根据当前对话状态，为用户生成 3 个不同方向的【用户回复】策略。这些策略是用户接下来该怎么开口，不是对方会怎么回。
 ## 当前对话记录
 ${formatHistory(normalizeMessages(session))}
 
@@ -375,9 +404,9 @@ ${formatHistory(normalizeMessages(session))}
 
 ## 要求
 1. 三个方向之间必须有明显差异
-2. 每个策略用 2-4 个字的口语化标签命名
+2. 每个策略用 2-4 个字的口语化标签命名（描述用户的意图，如”撒娇””直接问””冷处理”）
 3. 策略必须贴合当前对话语境，不能泛泛而谈
-4. 结合角色性格，策略要有“对这个人可能有效”的合理性
+4. 结合对方性格，策略要有”对这个人可能有效”的合理性
 
 ## 输出格式（严格 JSON，不要输出其他内容）
 {
@@ -388,7 +417,7 @@ ${formatHistory(normalizeMessages(session))}
   ]
 }`;
 
-  const raw = await callDeepSeek(systemPrompt, userPrompt);
+  const raw = await callDeepSeek(systemPrompt, userPrompt, 400, "generateStrategies");
   const result = parseJSON(raw);
   const strategies = Array.isArray(result.strategies) ? result.strategies.slice(0, 3) : [];
 
@@ -405,7 +434,7 @@ async function generateReplies(session, strategy) {
   const character = session.scenarioData.character || {};
   const background = session.scenarioData.background || "";
   const normalizedStrategy = normalizeStrategy(strategy || {}, 0);
-  const systemPrompt = buildSystemPrompt(
+  const systemPrompt = buildCoachSystemPrompt(
     character,
     background,
     session.current_mood,
@@ -413,16 +442,17 @@ async function generateReplies(session, strategy) {
   );
 
   const userPrompt = `## 任务
-用户选择了“${normalizedStrategy.label}”策略：${normalizedStrategy.description}
-基于这个方向，生成 2 条风格不同的具体回复。
+用户选择了”${normalizedStrategy.label}”策略：${normalizedStrategy.description}
+基于这个方向，生成 2 条风格不同的【用户回复】。这是用户要发给对方的消息，不是对方说的话。
 ## 当前对话记录
 ${formatHistory(normalizeMessages(session))}
 
 ## 要求
-1. 两条都符合选定策略方向，但风格差异明显
+1. 两条都是用户视角的回复，符合选定策略方向，但风格差异明显
 2. 每条附带风格标签（4-12 字）
 3. 回复长度 1-2 句话，模拟真实微信聊天
 4. 用词像真人发微信，不要书面语
+5. 绝对不能写成对方（${character.name || "对方"}）的口吻
 
 ## 输出格式（严格 JSON，不要输出其他内容）
 {
@@ -440,7 +470,7 @@ ${formatHistory(normalizeMessages(session))}
   ]
 }`;
 
-  const raw = await callDeepSeek(systemPrompt, userPrompt);
+  const raw = await callDeepSeek(systemPrompt, userPrompt, 500, "generateReplies");
   const result = parseJSON(raw);
   const replies = Array.isArray(result.replies) ? result.replies.slice(0, 3) : [];
 
@@ -533,7 +563,7 @@ ${JSON.stringify(possibleEndings, null, 2)}
   "literary_closing": ""
 }`;
 
-  const raw = await callDeepSeek(systemPrompt, userPrompt);
+  const raw = await callDeepSeek(systemPrompt, userPrompt, 800, "generateResponse");
   const result = parseJSON(raw);
 
   result.reply_messages = Array.isArray(result.reply_messages) ? result.reply_messages.slice(0, 3) : [];
@@ -824,6 +854,9 @@ exports.main = async (event = {}) => {
   const userMessage = event.user_message;
   const requestId = event.request_id;
   const wxContext = cloud.getWXContext();
+  const t0 = Date.now();
+
+  console.log("[TIMING] main start action=" + action, t0);
 
   if (!sessionId) {
     return {
@@ -838,8 +871,11 @@ exports.main = async (event = {}) => {
   try {
     switch (action) {
       case "generateStrategies": {
+        console.log("[TIMING] loadSession start", Date.now() - t0 + "ms");
         const session = await loadSessionWithScenario(sessionId, wxContext.OPENID);
+        console.log("[TIMING] loadSession done", Date.now() - t0 + "ms");
         const result = await generateStrategies(session);
+        console.log("[TIMING] main done total=" + (Date.now() - t0) + "ms");
         return {
           code: 0,
           data: result
@@ -855,8 +891,11 @@ exports.main = async (event = {}) => {
           };
         }
 
+        console.log("[TIMING] loadSession start", Date.now() - t0 + "ms");
         const session = await loadSessionWithScenario(sessionId, wxContext.OPENID);
+        console.log("[TIMING] loadSession done", Date.now() - t0 + "ms");
         const result = await generateReplies(session, strategy);
+        console.log("[TIMING] main done total=" + (Date.now() - t0) + "ms");
 
         return {
           code: 0,
@@ -867,12 +906,15 @@ exports.main = async (event = {}) => {
       case "generateResponse": {
         const normalizedUserMessage = validateUserMessage(userMessage);
         const normalizedRequestId = validateRequestId(requestId);
+
+        console.log("[TIMING] acceptRequest start", Date.now() - t0 + "ms");
         const acceptance = await acceptGenerateRequest(
           sessionId,
           wxContext.OPENID,
           normalizedRequestId,
           normalizedUserMessage
         );
+        console.log("[TIMING] acceptRequest done state=" + acceptance.state, Date.now() - t0 + "ms");
 
         if (acceptance.state === "completed") {
           return {
@@ -894,9 +936,15 @@ exports.main = async (event = {}) => {
 
         requestAccepted = true;
 
+        console.log("[TIMING] loadSession start", Date.now() - t0 + "ms");
         const session = await loadSessionWithScenario(sessionId, wxContext.OPENID);
+        console.log("[TIMING] loadSession done", Date.now() - t0 + "ms");
+
         const result = await generateResponse(session, normalizedUserMessage);
+
+        console.log("[TIMING] finalize start", Date.now() - t0 + "ms");
         const persistedResult = await finalizeGenerateRequest(session, wxContext.OPENID, normalizedRequestId, result);
+        console.log("[TIMING] main done total=" + (Date.now() - t0) + "ms");
 
         return {
           code: 0,
@@ -912,7 +960,7 @@ exports.main = async (event = {}) => {
         };
     }
   } catch (error) {
-    console.error("[chatEngine] 错误:", error);
+    console.error("[chatEngine] 错误 total=" + (Date.now() - t0) + "ms:", error);
     return buildErrorResult(error, requestAccepted);
   }
 };
