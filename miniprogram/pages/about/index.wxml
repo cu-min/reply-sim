@@ -1,0 +1,29 @@
+<view class="page-shell static-page">
+  <view class="static-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="static-nav__bar">
+      <view class="static-nav__back" bindtap="handleBack">‹</view>
+      <text class="static-nav__title">关于</text>
+      <view class="static-nav__back static-nav__back--placeholder"></view>
+    </view>
+  </view>
+
+  <view class="about-hero">
+    <text class="about-name serif-title">如果这样回</text>
+    <text class="about-version">v1.0.0</text>
+    <text class="about-tagline">有些话说出口就后悔，有些话没说出口更后悔。</text>
+  </view>
+
+  <view class="static-body">
+    <text class="static-h2">产品简介</text>
+    <text class="static-p">选一段关系、选一个场景，AI 扮演对方真实回应。每句话都会带来不同走向，反复斟酌，找到真实压力下最适合你的表达。</text>
+
+    <text class="static-h2">当前剧本</text>
+    <text class="static-p">前任 · 暗恋 · 职场 · 社交 · 家庭冲突，共 8 个剧本，持续更新。</text>
+
+    <text class="static-h2">开发者</text>
+    <text class="static-p">孜然然然然，独立开发。欢迎通过"意见反馈"留下你的想法。</text>
+
+    <text class="static-h2">技术</text>
+    <text class="static-p">微信小程序 · 微信云开发 · DeepSeek API</text>
+  </view>
+</view>

@@ -1,6 +1,7 @@
 const { checkHearts } = require("../../services/heart-service");
 const { callCloud } = require("../../services/cloud-service");
-const { getFavorites } = require("../../services/favorites-service");
+const { getFavorites, syncFromCloud } = require("../../services/favorites-service");
+const themeBehavior = require("../../behaviors/theme");
 
 const CAT_MOOD = {
   "暗恋": { grad: ["#D4B5A0", "#C49A85"], text: "#6B3A2A", tag: "#C49A85", emoji: "🌙" },
@@ -24,6 +25,7 @@ function settle(p) {
 }
 
 Page({
+  behaviors: [themeBehavior],
   data: {
     nickname: "匿名旅人",
     nameInitial: "匿",
@@ -98,6 +100,11 @@ Page({
           allSessions,
           achievements: this.computeAchievements({ scenarioCount, endingCount, totalRounds }),
         });
+
+        if (Array.isArray(profile.favorites)) {
+          syncFromCloud(profile.favorites);
+          this.renderFavorites(profile.favorites);
+        }
         return;
       }
 
@@ -145,8 +152,11 @@ Page({
   },
 
   loadFavorites() {
+    this.renderFavorites(getFavorites());
+  },
+
+  renderFavorites(favs) {
     try {
-      const favs = getFavorites();
       const favCount = favs.length;
       const cats = [...new Set(favs.map(f => f.category).filter(Boolean))];
       const favSub = favCount > 0
@@ -191,7 +201,7 @@ Page({
 
 
   handleSettings() {
-    wx.showToast({ title: "设置暂未开放", icon: "none" });
+    wx.navigateTo({ url: "/pages/settings/index" });
   },
 
   handleFeedback() {

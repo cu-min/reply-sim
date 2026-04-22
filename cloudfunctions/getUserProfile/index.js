@@ -157,7 +157,8 @@ exports.main = async () => {
         scenarioCount: scenarioIds.length,
         endingCount: endings.length,
         totalRounds,
-        recentSessions
+        recentSessions,
+        favorites: user.favorites || []
       }
     };
   } catch (error) {

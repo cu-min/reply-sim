@@ -4,7 +4,10 @@
     "pages/profile/index",
     "pages/script-detail/index",
     "pages/chat/index",
-    "pages/ending/index"
+    "pages/ending/index",
+    "pages/settings/index",
+    "pages/privacy/index",
+    "pages/about/index"
   ],
   "window": {
     "navigationBarTitleText": "如果这样回",

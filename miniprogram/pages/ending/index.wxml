@@ -1,4 +1,4 @@
-<view class="page-shell ending-page" wx:if="{{loadState === 'ready' && script && ending}}">
+<view class="page-shell ending-page" wx:if="{{loadState === 'ready' && script && ending}}" style="{{themeStyle}}">
   <view class="ending-hero">
     <text class="eyebrow">{{script.title}} · 本局结局</text>
     <text class="ending-title serif-title">{{ending.title}}</text>

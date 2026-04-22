@@ -2,6 +2,7 @@ const { getScriptDetail } = require("../../services/script-service");
 const { createSession } = require("../../services/session-service");
 const { checkHearts } = require("../../services/heart-service");
 const { isFavorited, toggleFavorite } = require("../../services/favorites-service");
+const themeBehavior = require("../../behaviors/theme");
 
 const CAT_MOOD = {
   "暗恋": { grad: ["#D4B5A0", "#C49A85"], text: "#6B3A2A", tag: "#C49A85", emoji: "🌙" },
@@ -11,6 +12,7 @@ const CAT_MOOD = {
 };
 
 Page({
+  behaviors: [themeBehavior],
   data: {
     script: null,
     loadState: "loading",

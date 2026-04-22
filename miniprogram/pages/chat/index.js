@@ -1,4 +1,5 @@
 const { generateStrategies, generateReplies, generateResponse } = require("../../services/chat-ai-service");
+const themeBehavior = require("../../behaviors/theme");
 const { createSession, syncOpeningSession } = (() => {
   const service = require("../../services/session-service");
   return {
@@ -101,6 +102,7 @@ function getReplyRetryOptions() {
 }
 
 Page({
+  behaviors: [themeBehavior],
   data: {
     statusBarHeight: 0,
     script: null,

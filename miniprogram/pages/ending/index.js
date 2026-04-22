@@ -1,5 +1,6 @@
 const { getEndingResult, getScriptDetail } = require("../../services/script-service");
 const { isFavorited, toggleFavorite } = require("../../services/favorites-service");
+const themeBehavior = require("../../behaviors/theme");
 
 function buildSummaryParagraphs(ending) {
   if (!ending) {
@@ -32,6 +33,7 @@ function buildEndingFromGlobal(ending) {
 }
 
 Page({
+  behaviors: [themeBehavior],
   data: {
     script: null,
     ending: null,

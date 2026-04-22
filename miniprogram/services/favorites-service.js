@@ -19,6 +19,13 @@ function isFavorited(scriptId) {
   return Boolean(getFavoritedIds()[scriptId]);
 }
 
+function syncFromCloud(cloudFavorites) {
+  if (!Array.isArray(cloudFavorites)) return;
+  try {
+    wx.setStorageSync(STORAGE_KEY, cloudFavorites);
+  } catch (e) {}
+}
+
 function toggleFavorite(script) {
   const favs = getFavorites();
   const idx = favs.findIndex(f => f.id === script.id);
@@ -40,7 +47,14 @@ function toggleFavorite(script) {
   try {
     wx.setStorageSync(STORAGE_KEY, favs);
   } catch (e) {}
+
+  // 异步同步到云端，失败静默
+  wx.cloud.callFunction({
+    name: "toggleFavorite",
+    data: { script }
+  }).catch(() => {});
+
   return nowFavorited;
 }
 
-module.exports = { getFavorites, getFavoritedIds, isFavorited, toggleFavorite };
+module.exports = { getFavorites, getFavoritedIds, isFavorited, toggleFavorite, syncFromCloud };

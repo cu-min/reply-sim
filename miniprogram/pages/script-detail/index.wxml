@@ -1,5 +1,5 @@
 <!-- 加载完成态 -->
-<view class="detail-page" wx:if="{{loadState === 'ready' && script}}">
+<view class="detail-page" wx:if="{{loadState === 'ready' && script}}" style="{{themeStyle}}">
 
   <!-- 自定义导航栏 -->
   <view class="detail-nav" style="padding-top: {{statusBarHeight}}px">

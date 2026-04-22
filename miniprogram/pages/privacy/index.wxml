@@ -1,0 +1,36 @@
+<view class="page-shell static-page">
+  <view class="static-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="static-nav__bar">
+      <view class="static-nav__back" bindtap="handleBack">‹</view>
+      <text class="static-nav__title">隐私协议</text>
+      <view class="static-nav__back static-nav__back--placeholder"></view>
+    </view>
+  </view>
+
+  <view class="static-body">
+    <text class="static-updated">最后更新：2025年4月</text>
+
+    <text class="static-h2">概述</text>
+    <text class="static-p">「如果这样回」（以下简称"本产品"）由孜然然然然开发，作为情感对话模拟工具供用户使用。我们高度重视用户隐私，本协议说明我们如何收集、使用和保护您的信息。</text>
+
+    <text class="static-h2">我们收集的信息</text>
+    <text class="static-p">· 微信 OpenID（用于标识您的账户，不含真实姓名或手机号）</text>
+    <text class="static-p">· 对话记录（仅存储于您的微信云开发环境，您可随时清除）</text>
+    <text class="static-p">· 收藏和结局数据（同上）</text>
+    <text class="static-p">· 心动值余额</text>
+
+    <text class="static-h2">我们不收集</text>
+    <text class="static-p">· 您的真实姓名、手机号、地理位置</text>
+    <text class="static-p">· 任何设备标识符（IMEI 等）</text>
+    <text class="static-p">· 广告追踪数据</text>
+
+    <text class="static-h2">数据使用</text>
+    <text class="static-p">收集的数据仅用于提供产品功能（登录、对话生成、数据同步），不会用于广告推送或出售给第三方。</text>
+
+    <text class="static-h2">数据安全</text>
+    <text class="static-p">数据存储于微信云开发，受微信平台安全机制保护。每位用户只能访问自己的数据。</text>
+
+    <text class="static-h2">联系我们</text>
+    <text class="static-p">如有隐私相关问题，请通过"我的 → 意见反馈"联系我们。</text>
+  </view>
+</view>

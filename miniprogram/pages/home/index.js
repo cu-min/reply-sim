@@ -6,8 +6,10 @@ const CAT_MOOD = {
 };
 
 const { getFavoritedIds } = require("../../services/favorites-service");
+const themeBehavior = require("../../behaviors/theme");
 
 Page({
+  behaviors: [themeBehavior],
   data: {
     statusBarHeight: 0,
     scrolled: false,

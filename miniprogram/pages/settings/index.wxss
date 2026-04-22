@@ -1,0 +1,121 @@
+.settings-page {
+  min-height: 100vh;
+  background: var(--color-bg-page);
+  padding-bottom: 60rpx;
+}
+
+.settings-nav {
+  background: var(--color-bg-page);
+}
+
+.settings-nav__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88rpx;
+  padding: 0 32rpx;
+}
+
+.settings-nav__back {
+  width: 60rpx;
+  font-size: 52rpx;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.settings-nav__back--placeholder {
+  pointer-events: none;
+}
+
+.settings-nav__title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.settings-section {
+  margin: 32rpx 32rpx 0;
+}
+
+.settings-section__label {
+  font-size: var(--font-note);
+  color: var(--color-text-muted);
+  padding: 0 4rpx 12rpx;
+  display: block;
+}
+
+.settings-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-card);
+  border: 1rpx solid var(--color-border-soft);
+  overflow: hidden;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  padding: 32rpx 32rpx;
+  gap: var(--space-16);
+}
+
+.settings-row--border {
+  border-top: 1rpx solid var(--color-border-soft);
+}
+
+.settings-row__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.settings-row__label {
+  flex: 1;
+  font-size: var(--font-body);
+  color: var(--color-text-primary);
+}
+
+.settings-row__sub {
+  font-size: var(--font-note);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.settings-row__arrow {
+  font-size: 36rpx;
+  color: var(--color-text-muted);
+}
+
+/* 字体大小选择 */
+.font-size-group {
+  display: flex;
+  gap: 12rpx;
+}
+
+.font-size-btn {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid var(--color-border-soft);
+  background: var(--color-bg-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.font-size-btn--active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.font-size-btn__text--sm { font-size: 22rpx; color: var(--color-text-secondary); }
+.font-size-btn__text--md { font-size: 28rpx; color: var(--color-text-secondary); }
+.font-size-btn__text--lg { font-size: 36rpx; color: var(--color-text-secondary); }
+
+.font-size-btn--active .font-size-btn__text--sm,
+.font-size-btn--active .font-size-btn__text--md,
+.font-size-btn--active .font-size-btn__text--lg {
+  color: var(--color-accent);
+  font-weight: 600;
+}

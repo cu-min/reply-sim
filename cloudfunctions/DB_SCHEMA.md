@@ -10,6 +10,7 @@
 - `hearts`: number，默认 `5`
 - `created_at`: timestamp
 - `updated_at`: timestamp
+- `favorites`: array，用户收藏的剧本列表，每项包含 `{ id, title, category, openingLine, blurb, savedAt }`
 
 ## scenarios
 - `_id`: auto

@@ -1,0 +1,94 @@
+.static-page {
+  min-height: 100vh;
+  background: var(--color-bg-page);
+  padding-bottom: 80rpx;
+}
+
+.static-nav {
+  background: var(--color-bg-page);
+}
+
+.static-nav__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88rpx;
+  padding: 0 32rpx;
+}
+
+.static-nav__back {
+  width: 60rpx;
+  font-size: 52rpx;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.static-nav__back--placeholder {
+  pointer-events: none;
+}
+
+.static-nav__title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.about-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 40rpx 40rpx;
+  gap: 16rpx;
+}
+
+.about-name {
+  font-size: 52rpx;
+  color: var(--color-text-primary);
+}
+
+.about-version {
+  font-size: var(--font-note);
+  color: var(--color-text-muted);
+  background: var(--color-bg-muted);
+  padding: 4rpx 20rpx;
+  border-radius: var(--radius-pill);
+}
+
+.about-tagline {
+  font-size: var(--font-caption);
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.static-body {
+  padding: 0 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.static-updated {
+  font-size: var(--font-note);
+  color: var(--color-text-muted);
+  margin-bottom: 32rpx;
+  display: block;
+}
+
+.static-h2 {
+  font-size: var(--font-body);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: 40rpx;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.static-p {
+  font-size: var(--font-body);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  display: block;
+  margin-bottom: 8rpx;
+}

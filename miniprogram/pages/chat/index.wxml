@@ -1,4 +1,4 @@
-<view class="page-shell chat-page" wx:if="{{loadState === 'ready' && script}}">
+<view class="page-shell chat-page" wx:if="{{loadState === 'ready' && script}}" style="{{themeStyle}}">
   <view class="chat-topbar" style="padding-top: {{statusBarHeight}}px;">
     <view class="chat-back" bindtap="handleBackHome">‹</view>
     <text class="chat-name">{{script.character.name}}</text>
