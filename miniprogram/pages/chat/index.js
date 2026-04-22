@@ -82,8 +82,9 @@ function getReplyLoadingOptions() {
     {
       id: REPLY_LOADING_ID,
       label: "正在组织语言",
-      tone: "再等一小会",
-      text: "正在组织语言..."
+      tone: "",
+      text: "正在组织语言",
+      loading: true
     }
   ];
 }
@@ -101,6 +102,7 @@ function getReplyRetryOptions() {
 
 Page({
   data: {
+    statusBarHeight: 0,
     script: null,
     sessionId: "",
     cloudSessionId: "",
@@ -129,6 +131,8 @@ Page({
   },
 
   async onLoad(query) {
+    const { statusBarHeight = 0 } = wx.getSystemInfoSync();
+    this.setData({ statusBarHeight });
     this.destroyed = false;
     this.pendingEnding = null;
     this.pendingGenerateRequest = null;

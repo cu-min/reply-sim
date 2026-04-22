@@ -15,6 +15,10 @@ Component({
     active: {
       type: Boolean,
       value: false
+    },
+    loading: {
+      type: Boolean,
+      value: false
     }
   }
 });

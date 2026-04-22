@@ -1,11 +1,9 @@
 <view class="page-shell chat-page" wx:if="{{loadState === 'ready' && script}}">
-  <view class="chat-topbar">
-    <view class="chat-title-group">
-      <text class="chat-name">{{script.character.name}}</text>
-      <text class="chat-status">{{topStatusText}}</text>
-    </view>
+  <view class="chat-topbar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="chat-back" bindtap="handleBackHome">‹</view>
+    <text class="chat-name">{{script.character.name}}</text>
+    <view class="chat-back chat-back--placeholder"></view>
   </view>
-
   <text class="chat-restore" wx:if="{{restoredSession}}">已恢复你上次未结束的这局对话</text>
 
   <scroll-view scroll-y class="chat-panel" scroll-with-animation scroll-into-view="{{scrollIntoViewId}}">
@@ -22,9 +20,10 @@
   </scroll-view>
 
   <view class="surface-card chat-bottom" wx:if="{{!canFinish}}">
+    <view class="stage-back-icon" wx:if="{{isStrategyChosen}}" bindtap="handleBackToIntentSelect">
+      <image src="/assets/icons/return.svg" mode="aspectFit" class="stage-back-img" />
+    </view>
     <view class="bottom-group" wx:if="{{!isStrategyChosen}}">
-      <text class="section-title">第一步 先决定怎么说</text>
-      <text class="intent-description">先选一个表达方向，再进入这一轮候选回复。</text>
       <view class="pill-row">
         <block wx:for="{{intentOptions}}" wx:key="id">
           <view
@@ -39,13 +38,6 @@
     </view>
 
     <view class="bottom-group" wx:if="{{isStrategyChosen}}">
-      <view class="reply-stage-head">
-        <view class="reply-stage-copy">
-          <text class="section-title">第二步 从这个方向里选一句</text>
-        </view>
-        <button class="stage-back-button" bindtap="handleBackToIntentSelect">返回</button>
-      </view>
-      <view class="selected-intent-badge">{{selectedIntentLabel}}</view>
       <block wx:for="{{replyOptions}}" wx:key="id">
         <view
           class="reply-item"
@@ -57,19 +49,19 @@
             tone="{{item.tone}}"
             text="{{item.text}}"
             active="{{selectedReplyId === item.id}}"
+            loading="{{item.loading || false}}"
           />
         </view>
       </block>
     </view>
 
     <view class="bottom-group">
-      <text class="section-title">第三步 发前再调一下</text>
-      <text class="composer-note">{{draftSourceLabel}}</text>
       <textarea
         class="composer"
         maxlength="{{composerMaxLength}}"
         auto-height="true"
         placeholder="也可以自己改一句再发出去"
+        placeholder-style="color:#6f645d;"
         value="{{composerText}}"
         bindinput="handleComposerInput"
         disabled="{{isTyping}}"

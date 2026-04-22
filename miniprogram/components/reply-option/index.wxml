@@ -1,7 +1,11 @@
 <view class="reply-card {{active ? 'reply-card--active' : ''}}">
-  <view class="reply-card-top">
+  <view class="reply-card-bar" wx:if="{{active}}"></view>
+  <view class="reply-card-body">
     <text class="reply-label">{{label}}</text>
-    <text class="fine-print">{{tone}}</text>
+    <text class="reply-tone" wx:if="{{tone}}">{{tone}}</text>
+    <view class="reply-text {{loading ? 'reply-text--loading' : ''}}">
+      <text>{{text}}</text>
+      <text wx:if="{{loading}}" class="loading-dots"></text>
+    </view>
   </view>
-  <text class="reply-text">{{text}}</text>
 </view>

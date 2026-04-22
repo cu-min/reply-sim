@@ -1,4 +1,5 @@
 {
+  "navigationStyle": "custom",
   "usingComponents": {
     "chat-message": "/components/chat-message/index",
     "intent-chip": "/components/intent-chip/index",

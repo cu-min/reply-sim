@@ -2,8 +2,8 @@
   min-height: 60rpx;
   padding: 0 var(--space-16);
   border-radius: var(--radius-pill);
-  border: 1rpx solid var(--color-border-soft);
-  background: transparent;
+  border: 1rpx solid var(--color-border-strong);
+  background: var(--color-bg-muted);
   color: var(--color-text-secondary);
   font-size: var(--font-caption);
   display: inline-flex;

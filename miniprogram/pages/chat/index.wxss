@@ -1,51 +1,43 @@
+.chat-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-8) var(--space-16) var(--space-12);
+}
+
+.chat-back {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52rpx;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+.chat-back--placeholder {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.chat-name {
+  font-size: 52rpx;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+  letter-spacing: 2rpx;
+  text-align: center;
+  flex: 1;
+}
+
 .chat-page {
   display: flex;
   flex-direction: column;
   height: 100vh;
   background: var(--color-bg-page);
-  padding-top: var(--space-12);
+  padding-top: 0;
   padding-bottom: calc(var(--space-24) + env(safe-area-inset-bottom));
-}
-
-.chat-topbar {
-  display: flex;
-  align-items: center;
-  margin-bottom: var(--space-8);
-}
-
-.chat-title-group {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.chat-name {
-  display: block;
-  width: 100%;
-  font-size: var(--font-title-md);
-  font-weight: 600;
-  text-align: center;
-  line-height: 1.2;
-  font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  writing-mode: horizontal-tb;
-}
-
-.chat-status {
-  display: block;
-  width: 100%;
-  margin-top: 6rpx;
-  color: var(--color-text-secondary);
-  font-size: var(--font-caption);
-  text-align: center;
-  line-height: 1.5;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  writing-mode: horizontal-tb;
 }
 
 .chat-restore {
@@ -65,6 +57,7 @@
 
 .chat-bottom,
 .finish-panel {
+  position: relative;
   padding: var(--space-20);
   background: #ffffff;
 }
@@ -73,51 +66,27 @@
   margin-top: var(--space-20);
 }
 
-.intent-description,
-.composer-note {
-  display: block;
-  margin-top: var(--space-8);
-  color: var(--color-text-secondary);
-  font-size: var(--font-caption);
-}
-
-.reply-stage-head {
+.stage-back-icon {
+  position: absolute;
+  top: var(--space-16);
+  left: var(--space-16);
+  width: 56rpx;
+  height: 56rpx;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-12);
+  align-items: center;
+  justify-content: center;
 }
 
-.reply-stage-copy {
-  flex: 1;
-  min-width: 0;
+.stage-back-img {
+  width: 44rpx;
+  height: 44rpx;
+  opacity: 0.6;
 }
 
-.stage-back-button {
-  min-height: 44rpx;
-  min-width: 88rpx;
-  padding: 0 14rpx;
-  border-radius: var(--radius-pill);
-  border: 1rpx solid var(--color-border-soft);
-  background: var(--color-bg-soft);
-  color: var(--color-accent);
-  font-size: 22rpx;
-  flex-shrink: 0;
-}
-
-.selected-intent-badge {
-  display: inline-flex;
-  margin-top: var(--space-12);
-  padding: 10rpx 18rpx;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-  font-size: var(--font-caption);
-}
 
 .intent-item + .intent-item,
 .reply-item + .reply-item {
-  margin-top: var(--space-12);
+  margin-top: var(--space-16);
 }
 
 .composer {
@@ -127,7 +96,9 @@
   padding: var(--space-16);
   border-radius: var(--radius-input);
   background: var(--color-bg-soft);
-  border: 1rpx solid var(--color-border-soft);
+  border: 2rpx solid var(--color-border-strong);
+  color: var(--color-text-primary);
+  placeholder-color: var(--color-text-secondary);
 }
 
 .composer-actions {
@@ -140,6 +111,11 @@
 .composer-clear {
   width: 180rpx;
   flex-shrink: 0;
+  border: 2rpx solid var(--color-accent);
+  color: var(--color-accent);
+  background: transparent;
+  border-radius: var(--radius-button);
+  font-weight: 500;
 }
 
 .send-button {

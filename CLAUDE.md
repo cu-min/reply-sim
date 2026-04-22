@@ -44,6 +44,8 @@ data/scenarios/        # 剧本 JSON 唯一真源
 
 ## 注意事项
 - DeepSeek API Key 在云函数环境变量中配置，禁止硬编码
-- `importScenarios` 云函数含内联剧本数据（已知双数据源问题，暂不处理）
-- 图标资源目前为占位稿（待上线前替换）
-- 云函数无法通过代码自动部署，改动后需提醒用户手动上传
+- 剧本唯一真源是 `data/scenarios/*.json`
+- `cloudfunctions/importScenarios/scenarios/` 是部署快照目录，只能由脚本生成
+- `miniprogram/mock/scenarios/*.js` 是脚本生成的开发兜底，不要手工维护
+- 云函数改动后需提醒用户在微信开发者工具中手动重新部署
+- 详细链路见 `SCENARIO_SYNC_DESIGN.md`
