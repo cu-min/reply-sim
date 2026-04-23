@@ -24,6 +24,19 @@ function unwrapDocData(result) {
   return data || null;
 }
 
+async function getOptionalDoc(ref) {
+  try {
+    return unwrapDocData(await ref.get());
+  } catch (error) {
+    const message = error && error.message ? String(error.message) : "";
+    if (message.includes("does not exist") || message.includes("document not found")) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
 class ChatEngineError extends Error {
   constructor(code, message, data) {
     super(message);
@@ -124,7 +137,7 @@ async function callDeepSeek(systemPrompt, userPrompt, maxTokens, label) {
       reject(new ChatEngineError("DEEPSEEK_NETWORK_ERROR", error.message || "DeepSeek 网络请求失败"));
     });
 
-    req.setTimeout(30000, () => {
+    req.setTimeout(45000, () => {
       const elapsed = Date.now() - t0;
       console.log("[TIMING]", tag, "timeout", elapsed + "ms");
       req.destroy();
@@ -295,7 +308,7 @@ ${background}
 }
 
 function buildSystemPrompt(character, background, currentMood, currentFavorability) {
-  return `你是“如果这样回”对话模拟引擎。你的任务是扮演一个真实的人，与用户进行情感对话模拟。
+  return `你是"如果这样回"对话模拟引擎。你的任务是扮演一个真实的人，与用户进行情感对话模拟。
 ## 你扮演的角色
 姓名：${character.name || "对方"}
 性别：${character.gender || "未知"}
@@ -404,9 +417,9 @@ ${formatHistory(normalizeMessages(session))}
 
 ## 要求
 1. 三个方向之间必须有明显差异
-2. 每个策略用 2-4 个字的口语化标签命名（描述用户的意图，如”撒娇””直接问””冷处理”）
+2. 每个策略用 2-4 个字的口语化标签命名（描述用户的意图，如"撒娇""直接问""冷处理"）
 3. 策略必须贴合当前对话语境，不能泛泛而谈
-4. 结合对方性格，策略要有”对这个人可能有效”的合理性
+4. 结合对方性格，策略要有"对这个人可能有效"的合理性
 
 ## 输出格式（严格 JSON，不要输出其他内容）
 {
@@ -442,7 +455,7 @@ async function generateReplies(session, strategy) {
   );
 
   const userPrompt = `## 任务
-用户选择了”${normalizedStrategy.label}”策略：${normalizedStrategy.description}
+用户选择了"${normalizedStrategy.label}"策略：${normalizedStrategy.description}
 基于这个方向，生成 2 条风格不同的【用户回复】。这是用户要发给对方的消息，不是对方说的话。
 ## 当前对话记录
 ${formatHistory(normalizeMessages(session))}
@@ -500,8 +513,16 @@ async function generateResponse(session, userMessage) {
     ? endingTriggers.conditions.map((item) => "- " + item).join("\n")
     : "- 根据对话语境判断是否已经到了适合收尾的节点";
 
+  // 只传结局的标识字段，生成字段由 AI 自己写，避免冗余 token
+  const endingOptions = possibleEndings.map((e) => ({
+    id: e.id,
+    type: e.type,
+    label: e.label,
+    badge_label: e.badge_label
+  }));
+
   const userPrompt = `## 任务
-用户刚刚发出了这条消息：“${userMessage}”
+用户刚刚发出了这条消息："${userMessage}"
 请以 ${character.name || "对方"} 的身份回应，并更新对话状态。
 ## 当前对话记录
 ${formatHistory(normalizeMessages(session))}
@@ -528,17 +549,17 @@ ${endingConditions}
 当前是否允许自然收尾：${canNaturallyEnd ? "是" : "否"}
 
 如果满足结局条件，should_end 设为 true，并从以下结局中选择最匹配的一种：
-${JSON.stringify(possibleEndings, null, 2)}
+${JSON.stringify(endingOptions)}
 
 如果触发结局，同时生成以下结局内容：
 - id：匹配的结局 id
 - type：匹配的结局 type
 - label：匹配的结局 label
 - badge_label：匹配的结局 badge_label
-- relationship_result：一句话关系结果
-- key_behavior_feedback：指出具体哪句话起了关键作用
-- missed_branch_hint：暗示另一种可能（只暗示，不剧透）
-- literary_closing：文艺结语（用于分享）
+- relationship_result：一句话关系结果（不超过 30 字）
+- key_behavior_feedback：指出具体哪句话起了关键作用（不超过 40 字）
+- missed_branch_hint：暗示另一种可能，只暗示不剧透（不超过 30 字）
+- literary_closing：文艺结语用于分享（不超过 30 字）
 
 ## 输出格式（严格 JSON，不要输出其他内容）
 {
@@ -563,7 +584,7 @@ ${JSON.stringify(possibleEndings, null, 2)}
   "literary_closing": ""
 }`;
 
-  const raw = await callDeepSeek(systemPrompt, userPrompt, 800, "generateResponse");
+  const raw = await callDeepSeek(systemPrompt, userPrompt, 600, "generateResponse");
   const result = parseJSON(raw);
 
   result.reply_messages = Array.isArray(result.reply_messages) ? result.reply_messages.slice(0, 3) : [];
@@ -589,8 +610,8 @@ ${JSON.stringify(possibleEndings, null, 2)}
 }
 
 async function loadSessionWithScenario(sessionId, openid) {
-  const sessionRes = await db.collection("sessions").where({ _id: sessionId }).limit(1).get();
-  const session = sessionRes.data[0];
+  const sessionRes = await db.collection("sessions").doc(sessionId).get();
+  const session = unwrapDocData(sessionRes);
 
   if (!session) {
     throw new ChatEngineError("SESSION_NOT_FOUND", "会话不存在");
@@ -754,9 +775,44 @@ function buildEndingRecord(session, openid, ending) {
   };
 }
 
+function buildEndingResponse(ending) {
+  if (!ending) {
+    return null;
+  }
+
+  return {
+    id: ending.id || "",
+    type: ending.type || "unknown",
+    label: ending.label || "",
+    badge_label: ending.badge_label || ending.label || ending.type || "",
+    relationship_result: ending.relationship_result || "",
+    key_behavior_feedback: ending.key_behavior_feedback || "",
+    missed_branch_hint: ending.missed_branch_hint || "",
+    literary_closing: ending.literary_closing || ""
+  };
+}
+
+function buildGenerateResponseRecord(result) {
+  const response = result || {};
+  const shouldEnd = Boolean(response.should_end && response.ending);
+
+  return {
+    reply_messages: Array.isArray(response.reply_messages)
+      ? response.reply_messages.slice(0, 3).map((message) => String(message || ""))
+      : [],
+    mood_update: response.mood_update || "",
+    favorability_change: typeof response.favorability_change === "number" ? response.favorability_change : 0,
+    new_favorability: clampFavorability(response.new_favorability, 0),
+    emotion_hint: response.emotion_hint || "",
+    should_end: shouldEnd,
+    ending: shouldEnd ? buildEndingResponse(response.ending) : null
+  };
+}
+
 async function finalizeGenerateRequest(session, openid, requestId, result) {
+  const response = buildGenerateResponseRecord(result);
   const requestDocId = getMessageRequestDocId(session._id, requestId);
-  const aiMessages = (result.reply_messages || []).map((message) => ({
+  const aiMessages = (response.reply_messages || []).map((message) => ({
     role: "assistant",
     name: session.scenarioData.character && session.scenarioData.character.name,
     content: message,
@@ -792,21 +848,26 @@ async function finalizeGenerateRequest(session, openid, requestId, result) {
 
     const finalMessages = normalizeMessages(currentSession).concat(aiMessages);
 
+    let endingRef = null;
+    let existingEnding = null;
+    let endingRecord = null;
+    if (response.should_end && response.ending) {
+      endingRef = transaction.collection("endings").doc(getEndingDocId(session._id, openid));
+      existingEnding = await getOptionalDoc(endingRef);
+      endingRecord = buildEndingRecord(session, openid, response.ending);
+    }
+
     await sessionRef.update({
       data: {
         messages: finalMessages,
-        current_mood: result.mood_update || currentSession.current_mood || "",
-        current_favorability: result.new_favorability,
-        status: result.should_end ? "ended" : "ongoing",
+        current_mood: response.mood_update || currentSession.current_mood || "",
+        current_favorability: response.new_favorability,
+        status: response.should_end ? "ended" : "ongoing",
         updated_at: db.serverDate()
       }
     });
 
-    if (result.should_end && result.ending) {
-      const endingRef = transaction.collection("endings").doc(getEndingDocId(session._id, openid));
-      const existingEnding = unwrapDocData(await endingRef.get());
-      const endingRecord = buildEndingRecord(session, openid, result.ending);
-
+    if (endingRef && endingRecord) {
       await endingRef.set({
         data: Object.assign({}, endingRecord, {
           created_at: (existingEnding && existingEnding.created_at) || db.serverDate()
@@ -818,13 +879,13 @@ async function finalizeGenerateRequest(session, openid, requestId, result) {
       data: {
         status: "completed",
         lock_until_ms: 0,
-        response: result,
+        response,
         updated_at: db.serverDate(),
         completed_at: db.serverDate()
       }
     });
 
-    return result;
+    return response;
   });
 }
 
@@ -867,6 +928,8 @@ exports.main = async (event = {}) => {
   }
 
   let requestAccepted = false;
+  let pendingRequestId = null;
+  let pendingSessionId = null;
 
   try {
     switch (action) {
@@ -935,6 +998,8 @@ exports.main = async (event = {}) => {
         }
 
         requestAccepted = true;
+        pendingRequestId = normalizedRequestId;
+        pendingSessionId = sessionId;
 
         console.log("[TIMING] loadSession start", Date.now() - t0 + "ms");
         const session = await loadSessionWithScenario(sessionId, wxContext.OPENID);
@@ -960,7 +1025,13 @@ exports.main = async (event = {}) => {
         };
     }
   } catch (error) {
-    console.error("[chatEngine] 错误 total=" + (Date.now() - t0) + "ms:", error);
+    console.error("[chatEngine] 错误 total=" + (Date.now() - t0) + "ms:", error.message || error);
+    if (requestAccepted && pendingRequestId && pendingSessionId) {
+      db.collection("message_requests")
+        .doc(getMessageRequestDocId(pendingSessionId, pendingRequestId))
+        .update({ data: { lock_until_ms: Date.now() + 5000 } })
+        .catch(() => {});
+    }
     return buildErrorResult(error, requestAccepted);
   }
 };
