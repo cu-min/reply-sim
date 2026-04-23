@@ -1,11 +1,16 @@
-<view class="reply-card {{active ? 'reply-card--active' : ''}}">
-  <view class="reply-card-bar" wx:if="{{active}}"></view>
-  <view class="reply-card-body">
-    <text class="reply-label">{{label}}</text>
-    <text class="reply-tone" wx:if="{{tone}}">{{tone}}</text>
-    <view class="reply-text {{loading ? 'reply-text--loading' : ''}}">
-      <text>{{text}}</text>
-      <text wx:if="{{loading}}" class="loading-dots"></text>
-    </view>
+<view
+  class="reply-card {{loading ? 'reply-card--loading' : 'reply-card--c' + cardIndex}} {{active ? 'reply-card--active' : ''}}"
+  hover-class="{{loading ? '' : 'reply-card--pressed'}}"
+  hover-stay-time="120"
+>
+  <view class="reply-check" wx:if="{{active}}">
+    <text class="reply-check-mark">✓</text>
+  </view>
+  <view class="reply-meta">
+    <text class="reply-style">{{label}}</text><text class="reply-desc" wx:if="{{tone && !loading}}"> {{tone}}</text>
+  </view>
+  <view class="reply-preview {{loading ? 'reply-preview--loading' : ''}}">
+    <text>{{text}}</text>
+    <text wx:if="{{loading}}" class="loading-dots"></text>
   </view>
 </view>

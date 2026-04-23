@@ -1,7 +1,8 @@
-<view class="emotion-line" wx:if="{{emotionHint}}">{{emotionHint}}</view>
-<view class="chat-row {{role === 'user' ? 'chat-row--user' : 'chat-row--assistant'}}">
-  <view class="chat-avatar">{{avatarText}}</view>
-  <view class="chat-bubble {{role === 'user' ? 'chat-bubble--user' : 'chat-bubble--assistant'}}">
-    {{text}}
-  </view>
+<view class="emotion-hint" wx:if="{{emotionHint}}">
+  <text class="emotion-text">{{emotionHint}}</text>
+</view>
+<view class="msg-row {{role === 'user' ? 'msg-row--user' : 'msg-row--assistant'}}">
+  <view class="msg-avatar" wx:if="{{role === 'assistant'}}">{{avatarText}}</view>
+  <view class="msg-bubble {{role === 'user' ? 'msg-bubble--user' : 'msg-bubble--assistant'}}">{{text}}</view>
+  <view class="msg-spacer" wx:if="{{role === 'user'}}"></view>
 </view>

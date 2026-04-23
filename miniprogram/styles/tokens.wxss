@@ -12,7 +12,7 @@ page {
   --color-accent: #8b5a5a;
   --color-accent-alt: #6b7b6e;
   --color-accent-soft: #f3e8e8;
-  --color-bubble-assistant: #f0ebe3;
+  --color-bubble-assistant: #e2d9ce;
   --color-bubble-user: #95ec69;
   --color-bubble-user-border: #7ad34c;
   --color-bubble-assistant-border: #e7dfd4;

@@ -1,89 +1,84 @@
-.emotion-line {
-  margin: 12rpx 0 16rpx;
+.emotion-hint {
   text-align: center;
-  color: var(--color-highlight);
-  font-size: var(--font-caption);
-  animation: emotionFade 2s ease-in-out;
+  padding: 12rpx 0 16rpx;
+  animation: emotionFade 3s ease-in-out forwards;
 }
 
-.chat-row {
+.emotion-text {
+  display: inline-block;
+  font-size: 22rpx;
+  color: var(--color-accent);
+  background: rgba(139, 90, 90, 0.08);
+  padding: 6rpx 24rpx;
+  border-radius: 999rpx;
+  letter-spacing: 0.5rpx;
+}
+
+.msg-row {
   display: flex;
   align-items: flex-end;
-  gap: var(--space-12);
-  margin-bottom: var(--space-16);
-  animation: bubbleFade 0.28s ease-out;
+  gap: 14rpx;
+  margin-bottom: 18rpx;
+  animation: bubbleFade 0.3s ease-out;
 }
 
-.chat-row--user {
+.msg-row--user {
   justify-content: flex-end;
 }
 
-.chat-row--user .chat-avatar {
-  order: 2;
-}
-
-.chat-row--user .chat-bubble {
-  order: 1;
-}
-
-.chat-avatar {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  background: var(--color-bg-muted);
-  color: var(--color-text-secondary);
+.msg-avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 18rpx;
+  background: linear-gradient(135deg, #D4B5A0, #C49A85);
+  color: #6B3A2A;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-caption);
+  font-size: 22rpx;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
-.chat-bubble {
-  max-width: 76%;
+.msg-spacer {
+  width: 12rpx;
+  flex-shrink: 0;
+}
+
+.msg-bubble {
+  max-width: 72%;
   padding: 18rpx 22rpx;
-  border-radius: var(--radius-bubble);
   font-size: var(--font-body);
   line-height: 1.65;
+  word-break: break-word;
 }
 
-.chat-bubble--assistant {
+.msg-bubble--assistant {
   background: var(--color-bubble-assistant);
-  border: 1rpx solid var(--color-bubble-assistant-border);
+  border-radius: 6rpx 28rpx 28rpx 28rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
 }
 
-.chat-bubble--user {
+.msg-bubble--user {
   background: var(--color-bubble-user);
-  border: 1rpx solid var(--color-bubble-user-border);
-  border-bottom-right-radius: 10rpx;
+  border-radius: 28rpx 6rpx 28rpx 28rpx;
+  box-shadow: 0 4rpx 16rpx rgba(100, 180, 80, 0.2);
 }
 
 @keyframes bubbleFade {
   from {
     opacity: 0;
-    transform: translateX(-8rpx);
+    transform: translateY(10rpx);
   }
-
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 
 @keyframes emotionFade {
-  0% {
-    opacity: 0;
-  }
-
-  20% {
-    opacity: 1;
-  }
-
-  80% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0.3;
-  }
+  0% { opacity: 0; transform: translateY(6rpx); }
+  15% { opacity: 1; transform: translateY(0); }
+  70% { opacity: 1; }
+  100% { opacity: 0.35; }
 }

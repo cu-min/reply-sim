@@ -120,6 +120,8 @@ Page({
     selectedIntentLabel: "",
     selectedIntentDescription: "",
     isStrategyChosen: false,
+    bottomStep: "intent",
+    replyPanelLeaving: false,
     scrollIntoViewId: "",
     sendButtonDisabled: true,
     draftSourceLabel: "可以直接发送，也可以参考上面的方向",
@@ -138,6 +140,7 @@ Page({
     this.destroyed = false;
     this.pendingEnding = null;
     this.pendingGenerateRequest = null;
+    this._isSending = false;
 
     const requestedScriptId = query.scriptId;
     const incomingSessionId = query.cloudSessionId || query.sessionId || "";
@@ -195,6 +198,7 @@ Page({
       selectedIntentLabel: "",
       selectedIntentDescription: "",
       isStrategyChosen: false,
+      bottomStep: "intent",
       scrollIntoViewId: getLastMessageId(initialMessages),
       sendButtonDisabled: true,
       draftSourceLabel: "可以直接发送，也可以参考上面的方向",
@@ -216,6 +220,10 @@ Page({
       try {
         return await fn();
       } catch (error) {
+        const code = error && error.cloudCode;
+        if (code === "REQUEST_IN_PROGRESS" || code === "REQUEST_ACCEPTED_PENDING_RETRY") {
+          throw error;
+        }
         if (index >= retryCount) {
           throw error;
         }
@@ -258,6 +266,7 @@ Page({
       selectedIntentLabel: "",
       selectedIntentDescription: "",
       isStrategyChosen: false,
+      bottomStep: "intent",
       composerText: "",
       sendButtonDisabled: true,
       draftSourceLabel: "可以直接发送，也可以参考上面的方向"
@@ -291,6 +300,7 @@ Page({
   async fetchReplies(strategy) {
     this.setData({
       isStrategyChosen: true,
+      bottomStep: "replies",
       selectedIntentId: strategy.id,
       selectedIntentLabel: strategy.label,
       selectedIntentDescription: strategy.description || "",
@@ -310,6 +320,9 @@ Page({
 
       this.setData({
         replyOptions: replies,
+        selectedReplyId: "",
+        composerText: "",
+        sendButtonDisabled: true,
         draftSourceLabel: "选中一句后，可以继续微调后发送"
       });
     } catch (error) {
@@ -363,12 +376,24 @@ Page({
       return;
     }
 
+    // 展示选中态，停留 600ms 后两阶段过渡到 edit 步骤
     this.setData({
       selectedReplyId: reply.id,
       composerText: normalizeComposerText(reply.text),
       sendButtonDisabled: !String(normalizeComposerText(reply.text)).trim(),
       draftSourceLabel: "已选中这一句，可以继续微调后发送"
     });
+
+    setTimeout(() => {
+      if (this.destroyed) return;
+      // 阶段一：replies 面板滑出
+      this.setData({ replyPanelLeaving: true });
+      setTimeout(() => {
+        if (this.destroyed) return;
+        // 阶段二：切换到 edit，edit 面板滑入
+        this.setData({ bottomStep: "edit", replyPanelLeaving: false });
+      }, 270);
+    }, 600);
   },
 
   handleBackToIntentSelect() {
@@ -377,6 +402,25 @@ Page({
     }
 
     this.preloadStrategies();
+  },
+
+  handleBackToReplies() {
+    if (this.data.isTyping) {
+      return;
+    }
+
+    this.setData({ bottomStep: "replies" });
+  },
+
+  handleToggleDirect() {
+    if (this.data.isTyping) {
+      return;
+    }
+
+    const isDirect = this.data.bottomStep === "direct";
+    this.setData({
+      bottomStep: isDirect ? (this.data.isStrategyChosen ? "replies" : "intent") : "direct"
+    });
   },
 
   handleComposerInput(event) {
@@ -432,12 +476,15 @@ Page({
   },
 
   async handleSend() {
-    if (this.data.isTyping) {
+    if (this._isSending || this.data.isTyping) {
+      console.log("[handleSend] blocked by lock, _isSending=" + this._isSending + " isTyping=" + this.data.isTyping);
       return;
     }
+    this._isSending = true;
 
     const userMessage = normalizeComposerText(this.data.composerText).trim();
     if (!userMessage) {
+      this._isSending = false;
       wx.showToast({
         title: "先选一句或自己写一句",
         icon: "none"
@@ -452,6 +499,8 @@ Page({
     const nextMessages = shouldAppendUserMessage
       ? this.data.messages.concat([createUserMessage(userMessage, requestId)])
       : this.data.messages.slice();
+
+    console.log("[handleSend] sending requestId=" + requestId + " isPending=" + Boolean(pendingRequest) + " t=" + Date.now());
 
     this.setData({
       messages: nextMessages,
@@ -479,6 +528,7 @@ Page({
       const mergedMessages = this.data.messages;
       const shouldEnd = Boolean(result.should_end && result.ending);
 
+      this._isSending = false;
       this.setData({
         intentOptions: shouldEnd ? [] : getStrategyLoadingOptions(),
         replyOptions: [],
@@ -487,6 +537,7 @@ Page({
         selectedIntentLabel: "",
         selectedIntentDescription: "",
         isStrategyChosen: false,
+        bottomStep: "intent",
         composerText: "",
         canFinish: shouldEnd,
         endingPrompt: shouldEnd ? "这段对话到了一个节点，要在这里停住吗？" : "",
@@ -505,6 +556,7 @@ Page({
 
       await this.preloadStrategies();
     } catch (error) {
+      this._isSending = false;
       const cloudCode = error && error.cloudCode ? error.cloudCode : "";
       const acceptedButPending =
         cloudCode === "REQUEST_IN_PROGRESS" || cloudCode === "REQUEST_ACCEPTED_PENDING_RETRY";
@@ -512,6 +564,10 @@ Page({
         cloudCode === "HEARTS_NOT_ENOUGH" ||
         cloudCode === "USER_MESSAGE_TOO_LONG" ||
         cloudCode === "USER_MESSAGE_REQUIRED";
+
+      const originalCode = error && error.cloudData && error.cloudData.original_error_code;
+      const originalMsg = error && error.cloudData && error.cloudData.original_message;
+      console.log("[handleSend] error cloudCode=" + cloudCode + " acceptedButPending=" + acceptedButPending + (originalCode ? " originalCode=" + originalCode : "") + (originalMsg ? " originalMsg=" + originalMsg : "") + " msg=" + (error && error.message || ""));
 
       if (acceptedButPending) {
         this.pendingGenerateRequest = {

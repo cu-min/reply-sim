@@ -14,6 +14,8 @@ const USER_MESSAGE_MAX_LENGTH = 200;
 const REQUEST_ID_MAX_LENGTH = 64;
 const REQUEST_LOCK_WINDOW_MS = 45000;
 const DEFAULT_USER_HEARTS = 5;
+const DEFAULT_MIN_ENDING_ROUND = 4;
+const NATURAL_ENDING_ROUND = 8;
 
 function unwrapDocData(result) {
   const data = result && result.data;
@@ -55,6 +57,15 @@ function parseJSON(text) {
   try {
     return JSON.parse(cleaned);
   } catch (error) {
+    const objectStart = cleaned.indexOf("{");
+    const objectEnd = cleaned.lastIndexOf("}");
+    if (objectStart >= 0 && objectEnd > objectStart) {
+      const jsonLike = cleaned.slice(objectStart, objectEnd + 1);
+      try {
+        return JSON.parse(jsonLike);
+      } catch (innerError) {}
+    }
+
     throw new ChatEngineError("AI_INVALID_JSON", "AI 返回的不是合法 JSON", {
       raw_preview: cleaned.slice(0, 200)
     });
@@ -256,20 +267,32 @@ function normalizeEndingMatch(ending, possibleEndings) {
     return null;
   }
 
-  const matchedEnding = (possibleEndings || []).find((item) => {
-    return (
-      item.id === ending.id ||
-      item.type === ending.type ||
-      item.label === ending.label ||
-      item.badge_label === ending.badge_label
-    );
-  });
+  const endings = possibleEndings || [];
+  let matchedEnding = endings.find((item) => item.id && item.id === ending.id);
+
+  if (!matchedEnding) {
+    matchedEnding = endings.find((item) => {
+      return (
+        (item.label && item.label === ending.label) ||
+        (item.badge_label && item.badge_label === ending.badge_label)
+      );
+    });
+  }
+
+  if (!matchedEnding && ending.type) {
+    const typeMatches = endings.filter((item) => item.type === ending.type);
+    matchedEnding = typeMatches.length === 1 ? typeMatches[0] : null;
+  }
+
+  if (!matchedEnding) {
+    return null;
+  }
 
   return {
-    id: ending.id || (matchedEnding && matchedEnding.id) || "",
-    type: ending.type || (matchedEnding && matchedEnding.type) || "unknown",
-    label: ending.label || (matchedEnding && matchedEnding.label) || "",
-    badge_label: ending.badge_label || (matchedEnding && matchedEnding.badge_label) || "",
+    id: matchedEnding.id || ending.id || "",
+    type: matchedEnding.type || ending.type || "unknown",
+    label: matchedEnding.label || ending.label || "",
+    badge_label: matchedEnding.badge_label || ending.badge_label || "",
     relationship_result: ending.relationship_result || "",
     key_behavior_feedback: ending.key_behavior_feedback || "",
     missed_branch_hint: ending.missed_branch_hint || "",
@@ -360,6 +383,15 @@ function countUserMessages(messages) {
   return (messages || []).filter((item) => item && item.role === "user").length;
 }
 
+function getMinimumEndingRound(session) {
+  const turns = Array.isArray(session.scenarioData && session.scenarioData.turns)
+    ? session.scenarioData.turns
+    : [];
+  const firstEndingIndex = turns.findIndex((turn) => turn && (turn.ending_id || turn.ending_prompt));
+
+  return firstEndingIndex >= 0 ? firstEndingIndex + 1 : DEFAULT_MIN_ENDING_ROUND;
+}
+
 function compressMessages(messages) {
   if (messages.length <= 12) {
     return messages;
@@ -382,17 +414,17 @@ function formatHistory(messages) {
 function normalizeStrategy(strategy, index) {
   return {
     id: strategy.id || "strategy-" + (index + 1),
-    label: strategy.label || "",
-    description: strategy.description || ""
+    label: String(strategy.label || "").trim(),
+    description: String(strategy.description || "").trim()
   };
 }
 
 function normalizeReply(reply, index, strategyId) {
   return {
     id: strategyId + "-reply-" + (index + 1),
-    style_label: reply.style_label || "",
-    style_description: reply.style_description || "",
-    content: reply.content || ""
+    style_label: String(reply.style_label || "").trim(),
+    style_description: String(reply.style_description || "").trim(),
+    content: String(reply.content || "").trim()
   };
 }
 
@@ -432,7 +464,11 @@ ${formatHistory(normalizeMessages(session))}
 
   const raw = await callDeepSeek(systemPrompt, userPrompt, 400, "generateStrategies");
   const result = parseJSON(raw);
-  const strategies = Array.isArray(result.strategies) ? result.strategies.slice(0, 3) : [];
+  const strategies = Array.isArray(result.strategies)
+    ? result.strategies
+        .filter((item) => item && String(item.label || "").trim() && String(item.description || "").trim())
+        .slice(0, 3)
+    : [];
 
   if (!strategies.length) {
     throw new ChatEngineError("AI_STRATEGIES_EMPTY", "AI 未返回策略");
@@ -485,7 +521,11 @@ ${formatHistory(normalizeMessages(session))}
 
   const raw = await callDeepSeek(systemPrompt, userPrompt, 500, "generateReplies");
   const result = parseJSON(raw);
-  const replies = Array.isArray(result.replies) ? result.replies.slice(0, 3) : [];
+  const replies = Array.isArray(result.replies)
+    ? result.replies
+        .filter((item) => item && String(item.content || "").trim())
+        .slice(0, 3)
+    : [];
 
   if (!replies.length) {
     throw new ChatEngineError("AI_REPLIES_EMPTY", "AI 未返回候选回复");
@@ -507,8 +547,11 @@ async function generateResponse(session, userMessage) {
     session.current_mood,
     session.current_favorability
   );
-  const roundNumber = Math.floor(normalizeMessages(session).length / 2) + 1;
-  const canNaturallyEnd = roundNumber >= 8;
+  const historyMessages = normalizeMessages(session);
+  const roundNumber = countUserMessages(historyMessages);
+  const minEndingRound = getMinimumEndingRound(session);
+  const canEnterEnding = roundNumber >= minEndingRound;
+  const canNaturallyEnd = roundNumber >= NATURAL_ENDING_ROUND;
   const endingConditions = Array.isArray(endingTriggers.conditions)
     ? endingTriggers.conditions.map((item) => "- " + item).join("\n")
     : "- 根据对话语境判断是否已经到了适合收尾的节点";
@@ -525,7 +568,7 @@ async function generateResponse(session, userMessage) {
 用户刚刚发出了这条消息："${userMessage}"
 请以 ${character.name || "对方"} 的身份回应，并更新对话状态。
 ## 当前对话记录
-${formatHistory(normalizeMessages(session))}
+${formatHistory(historyMessages)}
 
 ## 当前状态
 - 情绪：${session.current_mood}
@@ -543,9 +586,15 @@ ${formatHistory(normalizeMessages(session))}
 没有明显转折时，emotion_hint 置为空字符串。
 
 ## 结局判定
-检查是否满足以下任一条件：
+剧本最早允许进入结局的轮数：第 ${minEndingRound} 轮
+当前是否允许进入结局：${canEnterEnding ? "是" : "否"}
+
+只有“当前是否允许进入结局”为“是”时，才可以把 should_end 设为 true。
+如果当前不允许进入结局，无论情绪是否激烈，都必须继续推进对话，并把 should_end 设为 false、ending 设为 null。
+
+允许结局后，再检查是否满足以下任一条件：
 ${endingConditions}
-- 对话轮数已达到 8 轮，并且已经自然来到可以收束的位置
+- 对话轮数已达到 ${NATURAL_ENDING_ROUND} 轮，并且已经自然来到可以收束的位置
 当前是否允许自然收尾：${canNaturallyEnd ? "是" : "否"}
 
 如果满足结局条件，should_end 设为 true，并从以下结局中选择最匹配的一种：
@@ -587,7 +636,9 @@ ${JSON.stringify(endingOptions)}
   const raw = await callDeepSeek(systemPrompt, userPrompt, 600, "generateResponse");
   const result = parseJSON(raw);
 
-  result.reply_messages = Array.isArray(result.reply_messages) ? result.reply_messages.slice(0, 3) : [];
+  result.reply_messages = Array.isArray(result.reply_messages)
+    ? result.reply_messages.map((message) => String(message || "").trim()).filter(Boolean).slice(0, 3)
+    : [];
   if (!result.reply_messages.length) {
     throw new ChatEngineError("AI_REPLY_MESSAGES_EMPTY", "AI 未返回回应消息");
   }
@@ -600,7 +651,7 @@ ${JSON.stringify(endingOptions)}
   );
   result.emotion_hint = result.emotion_hint || "";
   result.ending = normalizeEndingMatch(result.ending, possibleEndings);
-  result.should_end = Boolean(result.should_end && isValidEnding(result.ending));
+  result.should_end = Boolean(canEnterEnding && result.should_end && isValidEnding(result.ending));
 
   if (!result.should_end) {
     result.ending = null;
@@ -648,12 +699,7 @@ async function acceptGenerateRequest(sessionId, openid, requestId, userMessage) 
       throw new ChatEngineError("SESSION_FORBIDDEN", "无权访问该会话");
     }
 
-    let requestRecord = null;
-      try {
-        requestRecord = unwrapDocData(await requestRef.get());
-      } catch (error) {
-        requestRecord = null;
-      }
+    const requestRecord = await getOptionalDoc(requestRef);
     if (requestRecord) {
       if (requestRecord.openid !== openid || requestRecord.session_id !== sessionId) {
         throw new ChatEngineError("REQUEST_ID_CONFLICT", "请求标识冲突");

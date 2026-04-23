@@ -19,6 +19,10 @@ Component({
     loading: {
       type: Boolean,
       value: false
+    },
+    cardIndex: {
+      type: Number,
+      value: 0
     }
   }
 });

@@ -1,18 +1,39 @@
-.pill {
-  min-height: 60rpx;
-  padding: 0 var(--space-16);
-  border-radius: var(--radius-pill);
-  border: 1rpx solid var(--color-border-strong);
-  background: var(--color-bg-muted);
-  color: var(--color-text-secondary);
-  font-size: var(--font-caption);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+/* Stretch to fill parent flex item */
+:host {
+  display: flex;
+  flex: 1;
+  min-width: 0;
 }
 
-.pill--active {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: #ffffff;
+.chip {
+  width: 100%;
+  min-height: 76rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
+
+/* Color variants */
+.chip--c0 { background: #E8D5C0; color: #7A5C42; }
+.chip--c1 { background: #F0DDD8; color: #A0524A; }
+.chip--c2 { background: #D8E8D5; color: #4A7A52; }
+
+/* Active (selected) state */
+.chip--active.chip--c0 { background: #7A5C42; color: #ffffff; }
+.chip--active.chip--c1 { background: #A0524A; color: #ffffff; }
+.chip--active.chip--c2 { background: #4A7A52; color: #ffffff; }
+
+/* Press feedback */
+.chip--pressed { transform: scale(0.95); }
+.chip--c0.chip--pressed { background: #D2C0A8; }
+.chip--c1.chip--pressed { background: #E4CAC5; }
+.chip--c2.chip--pressed { background: #C5DEC1; }
+.chip--active.chip--c0.chip--pressed { background: #624A35; }
+.chip--active.chip--c1.chip--pressed { background: #8A4440; }
+.chip--active.chip--c2.chip--pressed { background: #3C6644; }

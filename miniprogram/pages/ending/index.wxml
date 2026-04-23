@@ -1,41 +1,87 @@
-<view class="page-shell ending-page" wx:if="{{loadState === 'ready' && script && ending}}" style="{{themeStyle}}">
-  <view class="ending-hero">
-    <text class="eyebrow">{{script.title}} · 本局结局</text>
-    <text class="ending-title serif-title">{{ending.title}}</text>
-    <text class="ending-impact">{{ending.impactLine}}</text>
-    <text class="ending-summary">{{ending.relationSummary}}</text>
-  </view>
+<view class="ending-page" wx:if="{{loadState === 'ready' && script && ending}}" style="{{themeStyle}}" catchtouchmove="preventTouchMove">
 
-  <view class="ending-flow">
-    <block wx:for="{{ending.summaryParagraphs}}" wx:key="*this">
-      <text class="ending-paragraph">{{item}}</text>
-    </block>
-  </view>
+  <!-- Status bar -->
+  <view class="ending-status" style="height: {{statusBarHeight}}px;"></view>
 
-  <view class="ending-closing">
-    <text class="ending-closing-text serif-title">{{ending.closingLine}}</text>
-  </view>
-
-  <view class="ending-actions">
-    <button class="share-btn ending-share-button" open-type="share">
-      <image class="share-icon" src="/assets/icons/share.png" mode="aspectFit" />
-      <text>一键分享</text>
-    </button>
-    <view class="ending-fav-btn {{isFavorited ? 'ending-fav-btn--on' : ''}} {{favAnimating ? 'ending-fav-btn--pop' : ''}}"
-      bindtap="handleToggleFavorite">
-      <image class="ending-fav-icon" src="/assets/icons/star.svg" mode="aspectFit" />
-      <text class="ending-fav-label">{{isFavorited ? '已收藏这段剧本' : '收藏这段剧本'}}</text>
+  <!-- Nav -->
+  <view class="ending-nav">
+    <view class="ending-nav-back" bindtap="handleBackHome">
+      <text class="back-chevron">‹</text>
     </view>
-    <button class="secondary-button ending-action-secondary" bindtap="handleReplay">再来一局</button>
-    <button class="ending-action-link" bindtap="handleReplay">换个方式</button>
+    <text class="ending-nav-title serif-title">如果这样回</text>
+    <view class="ending-nav-placeholder"></view>
+  </view>
+
+  <!-- Body -->
+  <view class="ending-body">
+
+    <!-- ── Hero card ── -->
+    <view
+      class="hero-card"
+      style="background: linear-gradient(145deg, {{ending.moodGrad[0]}} 0%, {{ending.moodGrad[1]}} 100%);"
+    >
+      <!-- rain/weather decoration -->
+      <text class="hero-deco">{{ending.moodEmoji}}</text>
+
+      <!-- tag: "剧本名"·本局结局 -->
+      <text class="hero-tag" style="color: {{ending.moodTagColor}};">"{{script.title}}"·本局结局</text>
+
+      <!-- large serif title -->
+      <text class="hero-title serif-title" style="color: {{ending.moodTitleColor}};">{{ending.title}}</text>
+
+      <!-- subtitle -->
+      <text class="hero-sub" style="color: {{ending.moodTitleColor}};">{{ending.relationSummary}}</text>
+
+      <!-- bottom pill -->
+      <view class="hero-pill">
+        <text class="hero-pill-text" style="color: {{ending.moodTitleColor}};">{{ending.categoryLabel}} · {{ending.moodTag}}</text>
+      </view>
+    </view>
+
+    <!-- ── Card 1: 你做对了什么 ── -->
+    <view class="content-card" wx:if="{{ending.keyFeedback}}">
+      <text class="content-label">你做对了什么</text>
+      <text class="content-text">{{ending.keyFeedback}}</text>
+    </view>
+
+    <!-- ── Card 2: 错过的可能 ── -->
+    <view class="content-card" wx:if="{{ending.missedBranchText}}">
+      <view class="content-label-row">
+        <text class="content-label">错过的可能</text>
+        <text class="content-label-icon">ⓘ</text>
+      </view>
+      <text class="content-text">{{ending.missedBranchText}}</text>
+    </view>
+
+    <!-- ── Quote ── -->
+    <view class="quote-section" wx:if="{{ending.closingLine}}">
+      <text class="quote-mark">"</text>
+      <text class="quote-text serif-title">{{ending.closingLine}}</text>
+      <view class="quote-rule"></view>
+    </view>
+
+    <!-- ── Actions ── -->
+    <view class="actions-area">
+      <button class="btn-primary" open-type="share">分享结局</button>
+      <view
+        class="btn-outline {{isFavorited ? 'btn-outline--on' : ''}} {{favAnimating ? 'btn-outline--pop' : ''}}"
+        bindtap="handleToggleFavorite"
+      >
+        <image class="btn-star-icon" src="{{isFavorited ? '/assets/icons/star-filled.svg' : '/assets/icons/star.svg'}}" mode="aspectFit" />
+        <text class="btn-outline-label">{{isFavorited ? '已收藏' : '收藏'}}</text>
+      </view>
+      <text class="btn-text" bindtap="handleReplay">重新试试</text>
+    </view>
+
   </view>
 </view>
 
-<view class="page-shell ending-page" wx:elif="{{loadState === 'error'}}">
+<!-- Error -->
+<view class="ending-page ending-page--error" wx:elif="{{loadState === 'error'}}">
   <view class="surface-card ending-error">
     <text class="section-title">这一页暂时打不开</text>
-    <text class="ending-summary">{{errorMessage}}</text>
-    <button class="primary-button ending-action-secondary" bindtap="handleReplay" wx:if="{{script}}">回到这段剧本</button>
-    <button class="ghost-button ending-action-secondary" bindtap="handleBackHome">回到首页</button>
+    <text class="error-msg">{{errorMessage}}</text>
+    <button class="primary-button mt16" bindtap="handleReplay" wx:if="{{script}}">回到这段剧本</button>
+    <button class="ghost-button mt16" bindtap="handleBackHome">回到首页</button>
   </view>
 </view>

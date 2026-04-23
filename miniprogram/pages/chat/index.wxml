@@ -1,12 +1,39 @@
-<view class="page-shell chat-page" wx:if="{{loadState === 'ready' && script}}" style="{{themeStyle}}">
-  <view class="chat-topbar" style="padding-top: {{statusBarHeight}}px;">
-    <view class="chat-back" bindtap="handleBackHome">‹</view>
-    <text class="chat-name">{{script.character.name}}</text>
-    <view class="chat-back chat-back--placeholder"></view>
+<view class="chat-page" wx:if="{{loadState === 'ready' && script}}" style="{{themeStyle}}">
+
+  <!-- Status bar spacer -->
+  <view style="height: {{statusBarHeight}}px; flex-shrink: 0;"></view>
+
+  <!-- Top nav bar -->
+  <view class="chat-topbar">
+    <view class="chat-back" bindtap="handleBackHome">
+      <view class="back-chevron">‹</view>
+    </view>
+    <view class="chat-title-area">
+      <text class="chat-name">{{script.character.name}}</text>
+      <text class="chat-subtitle {{isTyping ? 'chat-subtitle--typing' : ''}}">
+        {{isTyping ? '正在输入…' : topStatusText}}
+      </text>
+    </view>
+    <view class="chat-topbar-right">
+      <view class="topbar-more">
+        <view class="more-dot"></view>
+        <view class="more-dot"></view>
+        <view class="more-dot"></view>
+      </view>
+    </view>
   </view>
+
   <text class="chat-restore" wx:if="{{restoredSession}}">已恢复你上次未结束的这局对话</text>
 
-  <scroll-view scroll-y class="chat-panel" scroll-with-animation scroll-into-view="{{scrollIntoViewId}}">
+  <!-- Chat messages scroll area -->
+  <scroll-view
+    scroll-y
+    class="chat-panel"
+    scroll-with-animation
+    scroll-into-view="{{scrollIntoViewId}}"
+  >
+    <view class="chat-timestamp">开始对话</view>
+
     <block wx:for="{{messages}}" wx:key="id">
       <view id="msg-{{item.id}}">
         <chat-message
@@ -17,73 +44,155 @@
         />
       </view>
     </block>
+
+    <!-- Typing indicator -->
+    <view class="typing-row" wx:if="{{isTyping}}">
+      <view class="typing-avatar">{{counterpartInitial}}</view>
+      <view class="typing-bubble">
+        <view class="typing-dot typing-dot--1"></view>
+        <view class="typing-dot typing-dot--2"></view>
+        <view class="typing-dot typing-dot--3"></view>
+      </view>
+    </view>
+
+    <view style="height: 24rpx;"></view>
   </scroll-view>
 
-  <view class="surface-card chat-bottom" wx:if="{{!canFinish}}">
-    <view class="stage-back-icon" wx:if="{{isStrategyChosen}}" bindtap="handleBackToIntentSelect">
-      <image src="/assets/icons/return.svg" mode="aspectFit" class="stage-back-img" />
+  <!-- Bottom panel -->
+  <view class="chat-bottom" wx:if="{{!canFinish}}">
+
+    <!-- Drag handle -->
+    <view class="panel-handle-wrap">
+      <view class="panel-handle"></view>
     </view>
-    <view class="bottom-group" wx:if="{{!isStrategyChosen}}">
-      <view class="pill-row">
-        <block wx:for="{{intentOptions}}" wx:key="id">
+
+    <!-- Step progress bar -->
+    <view class="step-progress">
+      <view class="step-bar {{bottomStep === 'replies' || bottomStep === 'edit' ? 'step-bar--done' : (bottomStep === 'intent' ? 'step-bar--active' : '')}}"></view>
+      <view class="step-bar {{bottomStep === 'edit' ? 'step-bar--done' : (bottomStep === 'replies' ? 'step-bar--active' : '')}}"></view>
+      <view class="step-bar {{bottomStep === 'edit' ? 'step-bar--active' : ''}}"></view>
+      <view
+        class="direct-toggle {{bottomStep === 'direct' ? 'direct-toggle--on' : ''}}"
+        hover-class="direct-toggle--pressed"
+        hover-stay-time="100"
+        bindtap="handleToggleDirect"
+      >
+        <image
+          class="direct-toggle-img"
+          src="/assets/{{bottomStep === 'direct' ? 'keyboard-active' : 'keyboard'}}.svg"
+          mode="aspectFit"
+        />
+      </view>
+    </view>
+
+    <view class="panel-body">
+
+      <!-- Step 1: Intent -->
+      <view wx:if="{{bottomStep === 'intent'}}" class="step-enter">
+        <text class="panel-hint">这一轮你更想……</text>
+        <view class="intent-row">
+          <block wx:for="{{intentOptions}}" wx:key="id">
+            <view class="intent-item" data-id="{{item.id}}" bindtap="handleIntentSelect">
+              <intent-chip
+                label="{{item.label}}"
+                active="{{selectedIntentId === item.id}}"
+                colorIndex="{{index}}"
+              />
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <!-- Step 2: Reply cards -->
+      <view wx:if="{{bottomStep === 'replies'}}" class="step-enter {{replyPanelLeaving ? 'step-leave' : ''}}" style="pointer-events: {{replyPanelLeaving ? 'none' : 'auto'}};">
+        <view class="replies-header">
+          <text class="replies-label">这轮可以这样说</text>
           <view
-            class="intent-item"
-            data-id="{{item.id}}"
-            bindtap="handleIntentSelect"
-          >
-            <intent-chip label="{{item.label}}" active="{{selectedIntentId === item.id}}" />
+            class="back-link"
+            hover-class="back-link--pressed"
+            hover-stay-time="100"
+            bindtap="handleBackToIntentSelect"
+          >← 重选意图</view>
+        </view>
+        <block wx:for="{{replyOptions}}" wx:key="id">
+          <view class="reply-item" data-id="{{item.id}}" bindtap="handleReplySelect">
+            <reply-option
+              label="{{item.label}}"
+              tone="{{item.tone}}"
+              text="{{item.text}}"
+              active="{{selectedReplyId === item.id}}"
+              loading="{{item.loading || false}}"
+              cardIndex="{{index}}"
+            />
           </view>
         </block>
       </view>
-    </view>
 
-    <view class="bottom-group" wx:if="{{isStrategyChosen}}">
-      <block wx:for="{{replyOptions}}" wx:key="id">
-        <view
-          class="reply-item"
-          data-id="{{item.id}}"
-          bindtap="handleReplySelect"
-        >
-          <reply-option
-            label="{{item.label}}"
-            tone="{{item.tone}}"
-            text="{{item.text}}"
-            active="{{selectedReplyId === item.id}}"
-            loading="{{item.loading || false}}"
-          />
+      <!-- Step 3: Edit & send -->
+      <view wx:if="{{bottomStep === 'edit'}}" class="step-enter">
+        <view class="edit-header">
+          <text class="edit-hint">发送前再调一下</text>
+          <view
+            class="back-link"
+            hover-class="back-link--pressed"
+            hover-stay-time="100"
+            bindtap="handleBackToReplies"
+          >← 换一条</view>
         </view>
-      </block>
-    </view>
-
-    <view class="bottom-group">
-      <textarea
-        class="composer"
-        maxlength="{{composerMaxLength}}"
-        auto-height="true"
-        placeholder="也可以自己改一句再发出去"
-        placeholder-style="color:#6f645d;"
-        value="{{composerText}}"
-        bindinput="handleComposerInput"
-        disabled="{{isTyping}}"
-      />
-      <view class="composer-actions">
-        <button class="ghost-button composer-clear" bindtap="handleClearComposer">清空</button>
-        <button class="primary-button send-button {{sendButtonDisabled ? 'send-button--disabled' : ''}}" bindtap="handleSend">
-          发送这句
-        </button>
+        <view class="selected-style-badge" wx:if="{{selectedIntentLabel}}">
+          <view class="selected-style-bar"></view>
+          <text class="selected-style-text">风格：<text class="selected-style-name">{{selectedIntentLabel}}</text></text>
+        </view>
+        <textarea
+          class="composer"
+          maxlength="{{composerMaxLength}}"
+          auto-height="true"
+          value="{{composerText}}"
+          bindinput="handleComposerInput"
+          disabled="{{isTyping}}"
+          placeholder="也可以修改后发送"
+          placeholder-style="color:#9a8f85; font-size:28rpx;"
+        />
+        <view class="composer-actions">
+          <button class="ghost-btn" hover-class="ghost-btn--pressed" hover-stay-time="100" bindtap="handleClearComposer">清空</button>
+          <button class="send-btn {{sendButtonDisabled ? 'send-btn--disabled' : ''}}" disabled="{{sendButtonDisabled}}" bindtap="handleSend">发送这句</button>
+        </view>
       </view>
+
+      <!-- Direct input mode -->
+      <view wx:if="{{bottomStep === 'direct'}}" class="step-enter">
+        <text class="panel-hint">直接输入你想说的话</text>
+        <textarea
+          class="composer"
+          maxlength="{{composerMaxLength}}"
+          auto-height="true"
+          value="{{composerText}}"
+          bindinput="handleComposerInput"
+          disabled="{{isTyping}}"
+          placeholder="想好了怎么说？直接写……"
+          placeholder-style="color:#9a8f85; font-size:28rpx;"
+        />
+        <view class="composer-actions">
+          <button class="ghost-btn" hover-class="ghost-btn--pressed" hover-stay-time="100" bindtap="handleClearComposer">清空</button>
+          <button class="send-btn {{sendButtonDisabled ? 'send-btn--disabled' : ''}}" disabled="{{sendButtonDisabled}}" bindtap="handleSend">发送这句</button>
+        </view>
+      </view>
+
     </view>
   </view>
 
-  <view class="surface-card finish-panel" wx:if="{{canFinish}}">
+  <!-- Finish panel -->
+  <view class="finish-panel" wx:if="{{canFinish}}">
     <text class="section-title">这一局可以先停在这里</text>
     <text class="finish-copy">{{endingPrompt}}</text>
     <button class="primary-button finish-button" bindtap="handleSeeEnding">查看本局结局</button>
     <button class="ghost-button" bindtap="handleRestart">换个方式再聊一遍</button>
   </view>
+
 </view>
 
-<view class="page-shell chat-page" wx:elif="{{loadState === 'error'}}">
+<!-- Error state -->
+<view class="chat-page page-shell" wx:elif="{{loadState === 'error'}}">
   <view class="surface-card finish-panel">
     <text class="section-title">这段对话暂时没接上</text>
     <text class="finish-copy">{{errorMessage}}</text>

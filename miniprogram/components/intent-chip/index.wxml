@@ -1,3 +1,7 @@
-<view class="pill {{active ? 'pill--active' : ''}}">
+<view
+  class="chip chip--c{{colorIndex}} {{active ? 'chip--active' : ''}}"
+  hover-class="chip--pressed"
+  hover-stay-time="120"
+>
   {{label}}
 </view>

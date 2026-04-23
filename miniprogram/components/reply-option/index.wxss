@@ -1,56 +1,128 @@
+/* ── Base card ───────────────────────────────────────── */
 .reply-card {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  border-radius: var(--radius-card);
-  background: #ffffff;
-  border: 1rpx solid var(--color-border-soft);
-  box-shadow: var(--shadow-card);
+  position: relative;
+  border-radius: 24rpx;
+  border: none;
+  padding: 26rpx 26rpx 22rpx;
   overflow: hidden;
+  transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
-.reply-card--active {
-  background: var(--color-accent-soft);
-  border-color: var(--color-accent);
+/* ── 加载中态：透明无框，只保留文字动效 ─────────────── */
+.reply-card--loading {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 12rpx 4rpx;
 }
 
-.reply-card-bar {
-  width: 8rpx;
-  background: var(--color-accent);
-  flex-shrink: 0;
-  border-radius: 4rpx 0 0 4rpx;
+/* ── 未选中态：极浅近白，无边框 ─────────────────────── */
+.reply-card--c0 {
+  background: #FAF8FC;
+  box-shadow: none;
 }
 
-.reply-card-body {
-  flex: 1;
-  padding: var(--space-16);
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
+.reply-card--c1 {
+  background: #FCF9F7;
+  box-shadow: none;
 }
 
-.reply-label {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--color-accent);
-  line-height: 1.4;
+/* ── 选中态：加深 + 阴影 ──────────────────────────── */
+.reply-card--c0.reply-card--active {
+  background: #C4B8E0;
+  box-shadow: 0 10rpx 32rpx rgba(100, 80, 160, 0.18);
 }
 
-.reply-tone {
-  font-size: 24rpx;
-  color: var(--color-text-muted);
-  line-height: 1.4;
+.reply-card--c1.reply-card--active {
+  background: #E0C8B8;
+  box-shadow: 0 10rpx 32rpx rgba(160, 100, 60, 0.18);
 }
 
-.reply-text {
+/* ── 按压反馈 ─────────────────────────────────────── */
+.reply-card--pressed {
+  transform: scale(0.985);
+}
+
+/* ── 对勾 ─────────────────────────────────────────── */
+.reply-check {
+  position: absolute;
+  top: 22rpx;
+  right: 22rpx;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.6);
   display: flex;
   align-items: center;
-  font-size: 30rpx;
-  color: var(--color-text-primary);
-  line-height: 1.6;
-  margin-top: 10rpx;
+  justify-content: center;
 }
 
+.reply-check-mark {
+  font-size: 20rpx;
+  color: #3A1A0A;
+  line-height: 1;
+}
+
+/* ── Meta 行：标签 nowrap + 描述 inline 换行 ──────── */
+.reply-meta {
+  margin-bottom: 14rpx;
+  padding-right: 48rpx;
+  line-height: 1.5;
+}
+
+.reply-style {
+  display: inline;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--color-accent);
+  font-family: "Songti SC", "STSong", serif;
+  white-space: nowrap;
+}
+
+.reply-card--c0.reply-card--active .reply-style { color: #3A2A5A; }
+.reply-card--c1.reply-card--active .reply-style { color: #5A3A1A; }
+
+.reply-desc {
+  display: inline;
+  font-size: 22rpx;
+  color: var(--color-text-muted);
+  white-space: normal;
+}
+
+.reply-card--c0.reply-card--active .reply-desc { color: rgba(58, 42, 90, 0.65); }
+.reply-card--c1.reply-card--active .reply-desc { color: rgba(90, 58, 26, 0.65); }
+
+/* ── 预览气泡 ─────────────────────────────────────── */
+.reply-preview {
+  background: var(--color-bubble-assistant);
+  border-radius: 16rpx 16rpx 16rpx 4rpx;
+  padding: 14rpx 18rpx;
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.reply-card--c0.reply-card--active .reply-preview {
+  background: rgba(255, 255, 255, 0.4);
+  color: #2A1A4A;
+  font-weight: 500;
+}
+
+.reply-card--c1.reply-card--active .reply-preview {
+  background: rgba(255, 255, 255, 0.4);
+  color: #4A2A0A;
+  font-weight: 500;
+}
+
+/* 加载中气泡：去掉背景，只留文字 + pulse */
+.reply-preview--loading {
+  background: transparent;
+  padding: 0;
+  color: var(--color-text-muted);
+  animation: loadingPulse 1.4s ease-in-out infinite;
+}
+
+/* ── 省略号动效（loading-dots） ───────────────────── */
 @keyframes dots {
   0%   { content: ""; }
   33%  { content: "."; }
@@ -63,6 +135,8 @@
   animation: dots 1.2s steps(1, end) infinite;
 }
 
-.reply-text--loading text {
-  color: var(--color-text-secondary);
+/* ── Pulse 淡入淡出（加载中整体） ────────────────── */
+@keyframes loadingPulse {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 1; }
 }
